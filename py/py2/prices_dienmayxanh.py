@@ -43,9 +43,12 @@ def daily_task():
         writer.writeheader()
         writer.writerows(price_data)
     # Compress data
-    zipcommand = "cd " + path_csv + "&& tar -cvzf " + site_name + "_" + \
+    zip_csv = "cd " + path_csv + "&& tar -cvzf " + site_name + "_" + \
         date + ".tar.gz *" + site_name + "_" + date + "* --remove-files"
-    os.system(zipcommand)
+    zip_html =  "cd " + path_html + "&& tar -cvzf " + site_name + "_" + \
+        date + ".tar.gz *" + date + ".html* --remove-files"
+    os.system(zip_csv)
+    os.system(zip_html)
 
 
 def fetch_html(url, file_name, path):
