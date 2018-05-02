@@ -17,7 +17,7 @@ def clone_py2(py_file):
         for i, v in enumerate(print_index):
             contents[v] = print_fix[i]
             os.makedirs(os.getcwd() + "/py2/", exist_ok=True)
-            with open(os.getcwd() + "/py2/" + py_file, "w") as w:
+            with open(os.getcwd() + "/py2/py2_" + py_file, "w") as w:
                 for line in contents:
                     w.write("%s\n" % line)
 
