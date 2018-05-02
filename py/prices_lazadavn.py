@@ -123,10 +123,10 @@ def scrap_data(cat_name):
     return(data)
 
 
-daily_task()
+# daily_task()
 
-# schedule.every().day.at("12:00").do(daily_task)
+schedule.every().day.at("06:00").do(daily_task)
 
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
