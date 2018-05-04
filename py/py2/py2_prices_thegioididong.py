@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import datetime
@@ -114,11 +115,11 @@ def scrap_data(cat_name):
     return(data)
 
 
-# daily_task()
-
-schedule.every().day.at("06:00").do(daily_task)
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if "test" in sys.argv:
+    daily_task()
+else:
+    schedule.every().day.at("06:00").do(daily_task)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
