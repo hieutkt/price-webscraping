@@ -1,3 +1,5 @@
 /csv/*
 /html/*
 /geckodriver.log
+/py/dev/*
+/py/py2/*
