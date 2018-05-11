@@ -103,10 +103,13 @@ def scrap_data(cat_name):
         row = {}
         good_name = item.find('h3')
         row['good_name'] = good_name.contents[0] if good_name else None
-        price = item.find('strong')
-        row['price'] = price.contents[0] if price else None
-        old_price = price.find_next_sibling('span')
-        row['old_price'] = old_price.contents[0] if old_price else None
+        price_tag = item.find('strong')
+        price = price_tag.contents if price_tag else []
+        row['price'] = price[0] if len(price) > 0 else None
+        old_price_tag = price_tag.find_next_sibling('span')
+        old_price = old_price_tag.contents if old_price_tag else []
+        row['old_price'] = old_price[0]\
+            if len(old_price) > 0 else None
         id1 = item.find('a')
         row['id'] = id1.get('href') if id1 else None
         row['category'] = cat_name
