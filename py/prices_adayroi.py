@@ -87,6 +87,8 @@ def get_category_list(top_html):
         else:
             page['label'] = cat.contents[0]
         page_list.append(page)
+    # Remove duplicates
+    page_list = [dict(t) for t in set(tuple(i.items()) for i in page_list)]
     return(page_list)
 
 

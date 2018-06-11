@@ -93,6 +93,8 @@ def get_category_list(top_html):
         page['name'] = re.sub("/|\\?.=", "_", link)
         page['label'] = cat.get("title")
         page_list.append(page)
+    # Remove duplicates
+    page_list = [dict(t) for t in set(tuple(i.items()) for i in page_list)]
     return(page_list)
 
 
