@@ -33,7 +33,9 @@ def daily_task():
         if download:
             scrap_data(cat)
             next_page = find_next_page(cat)
-            if next_page is not None:
+            if next_page is not None and\
+               next_page['directlink'] not in\
+               [i['directlink'] for i in categories]:
                 categories.append(next_page)
     # Compress data and html files
     compress_data()
@@ -120,10 +122,10 @@ def find_next_page(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    next_page = cat
+    next_page = cat.copy()
     next_button = cat_soup.find("a", {"class": "btn", "rel": "next"})
     if next_button:
-        link = re.sub(".+shopee\.vn", "", next_button['href'])
+        link = re.sub(".+adayroi\.com", "", next_button['href'])
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
         next_page['name'] = re.sub("/|\\?.=", "_", link)
