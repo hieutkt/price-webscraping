@@ -81,11 +81,7 @@ def get_category_list(top_html):
         page['relativelink'] = link
         page['directlink'] = BASE_URL + link
         page['name'] = re.sub("/|\\?.=", "_", link)
-        label = cat.find("span", {"class": "infor-sale"})
-        if label:
-            page['label'] = label.contents[0]
-        else:
-            page['label'] = cat.contents[0]
+        page['label'] = cat.text
         page_list.append(page)
     # Remove duplicates
     page_list = [dict(t) for t in set(tuple(i.items()) for i in page_list)]
