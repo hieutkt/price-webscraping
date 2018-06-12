@@ -118,12 +118,15 @@ def scrap_data(cat):
 def find_next_page(cat):
     """Find the next page button and return the next page info"""
     try:
+        BROWSER.find_element_by_css_selector('.ant-modal-close').click()
+    except:
+        pass
+    try:
         next_button = BROWSER.\
             find_element_by_css_selector(".ant-pagination-next")
     except:
         return(None)
     if next_button:
-        next_button.click()
         link = BROWSER.current_url
         if link not in [i['directlink'] for i in CATEGORIES_PAGES]:
             next_page = cat.copy()
