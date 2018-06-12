@@ -20,23 +20,21 @@ PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 def daily_task():
     """Main workhorse function. Support functions defined below"""
     global DATE
+    global CATEGORIES_PAGES
     DATE = str(datetime.date.today())
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
     fetch_html(BASE_URL, base_file_name, PATH_HTML)
     html_file = open(PATH_HTML + base_file_name).read()
-    categories = get_category_list(html_file)
+    CATEGORIES_PAGES = get_category_list(html_file)
+    CATEGORIES_PAGES = CATEGORIES_PAGES[:5]
     # Read each categories pages and scrape for data
-    for cat in categories:
+    for cat in CATEGORIES_PAGES:
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
         download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         if download:
             scrap_data(cat)
-            next_page = find_next_page(cat)
-            if next_page is not None and\
-               next_page['directlink'] not in\
-               [i['directlink'] for i in categories]:
-                categories.append(next_page)
+            find_next_page(cat)
     # Compress data and html files
     compress_data()
 
@@ -120,16 +118,15 @@ def find_next_page(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    next_page = cat.copy()
     next_button = cat_soup.find("a", {"class": "btn", "rel": "next"})
     if next_button:
         link = re.sub(".+adayroi\.com", "", next_button['href'])
-        next_page['relativelink'] = link
-        next_page['directlink'] = BASE_URL + link
-        next_page['name'] = re.sub("/|\\?.=", "_", link)
-        return(next_page)
-    else:
-        return(None)
+        if link not in [i['directlink'] for i in CATEGORIES_PAGES]:
+            next_page = cat.copy()
+            next_page['relativelink'] = link
+            next_page['directlink'] = BASE_URL + link
+            next_page['name'] = re.sub("/|\\?.=", "_", link)
+            CATEGORIES_PAGES.append(next_page)
 
 
 def write_data(item_data):

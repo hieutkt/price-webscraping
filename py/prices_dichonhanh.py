@@ -18,40 +18,37 @@ PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 
 # Selenium options
-options = Options()
-options.add_argument('--headless')
-options.add_argument('--disable-gpu')
-chrome_driver = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
+OPTIONS = Options()
+OPTIONS.add_argument('--headless')
+OPTIONS.add_argument('--disable-gpu')
+CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
+# Initiate headless web browser
+BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                           chrome_options=OPTIONS)
 
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""
     global DATE
+    global CATEGORIES_PAGES
     DATE = str(datetime.date.today())
-    # Initiate headless web browser
-    browser = webdriver.Chrome(executable_path=chrome_driver,
-                               chrome_options=options)
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
-    fetch_html(BASE_URL, base_file_name, PATH_HTML, browser)
+    fetch_html(BASE_URL, base_file_name, PATH_HTML)
     html_file = open(PATH_HTML + base_file_name).read()
-    categories = get_category_list(html_file)
+    CATEGORIES_PAGES = get_category_list(html_file)
     # Read each categories pages and scrape for data
-    for cat in categories:
+    for cat in CATEGORIES_PAGES:
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
-        download = fetch_html(cat['directlink'], cat_file, PATH_HTML, browser)
+        download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         if download:
             scrap_data(cat)
-            next_page = find_next_page(cat)
-            if next_page is not None and\
-               next_page['directlink'] not in\
-               [i['directlink'] for i in categories]:
-                categories.append(next_page)
+            find_next_page(cat)
     # Compress data and html files
     compress_data()
 
 
-def fetch_html(url, file_name, path, browser):
+def fetch_html(url, file_name, path):
     """Fetch and download a html with provided path and file names"""
     if not os.path.exists(path):
         os.makedirs(path)
@@ -59,8 +56,8 @@ def fetch_html(url, file_name, path, browser):
         attempts = 0
         while attempts < 5:
             try:
-                browser.get(url)
-                element = browser.find_element_by_xpath("/html")
+                BROWSER.get(url)
+                element = BROWSER.find_element_by_xpath("/html")
                 html_content = element.get_attribute("innerHTML")
                 with open(path + file_name, "w") as f:
                     f.write(html_content)
@@ -127,18 +124,17 @@ def find_next_page(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    next_page = cat.copy()
     next_button = cat_soup.find("a", {"aria-label": "Next"})
     if next_button:
         link = re.sub(".+dichonhanh\.vn", "", cat['directlink'])
         link = re.sub("\?page=[0-9]+", "", link)
         link = link + next_button['href']
-        next_page['relativelink'] = link
-        next_page['directlink'] = BASE_URL + link
-        next_page['name'] = re.sub("/|\\?.=", "_", link)
-        return(next_page)
-    else:
-        return(None)
+        if link not in [i['relativelink'] for i in CATEGORIES_PAGES]:
+            next_page = cat.copy()
+            next_page['relativelink'] = link
+            next_page['directlink'] = BASE_URL + link
+            next_page['name'] = re.sub("/|\\?.=", "_", link)
+            CATEGORIES_PAGES.append(next_page)
 
 
 def write_data(item_data):
