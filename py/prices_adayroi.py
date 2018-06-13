@@ -27,7 +27,6 @@ def daily_task():
     fetch_html(BASE_URL, base_file_name, PATH_HTML)
     html_file = open(PATH_HTML + base_file_name).read()
     CATEGORIES_PAGES = get_category_list(html_file)
-    CATEGORIES_PAGES = CATEGORIES_PAGES[:5]
     # Read each categories pages and scrape for data
     for cat in CATEGORIES_PAGES:
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
