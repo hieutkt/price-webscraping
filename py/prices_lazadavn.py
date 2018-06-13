@@ -120,15 +120,18 @@ def find_next_page(cat):
     current_url = BROWSER.current_url
     try:
         BROWSER.find_element_by_css_selector('.ant-modal-close').click()
-    except:
+    except Exception:
         pass
     try:
         next_button = BROWSER.\
             find_element_by_css_selector(".ant-pagination-next")
-    except:
-        return(None)
-    if next_button:
-        next_button.click()
+    except Exception:
+        next_button = None
+    if next_button is not None:
+        try:
+            next_button.click()
+        except Exception:
+            pass
         link = BROWSER.current_url
         if link != current_url:
             if link not in [i['directlink'] for i in CATEGORIES_PAGES]:
