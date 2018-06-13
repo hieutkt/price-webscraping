@@ -117,6 +117,7 @@ def scrap_data(cat):
 
 def find_next_page(cat):
     """Find the next page button and return the next page info"""
+    current_url = BROWSER.current_url
     try:
         BROWSER.find_element_by_css_selector('.ant-modal-close').click()
     except:
@@ -127,14 +128,16 @@ def find_next_page(cat):
     except:
         return(None)
     if next_button:
+        next_button.click()
         link = BROWSER.current_url
-        if link not in [i['directlink'] for i in CATEGORIES_PAGES]:
-            next_page = cat.copy()
-            next_page['directlink'] = link
-            next_page['relativelink'] = re.sub(".+lazada\.vn", "", link)
-            next_page['name'] = re.sub("/|\\?.=", "_",
-                                       next_page['relativelink'])
-            CATEGORIES_PAGES.append(next_page)
+        if link != current_url:
+            if link not in [i['directlink'] for i in CATEGORIES_PAGES]:
+                next_page = cat.copy()
+                next_page['directlink'] = link
+                next_page['relativelink'] = re.sub(".+lazada\.vn", "", link)
+                next_page['name'] = re.sub("/|\\?.=", "_",
+                                           next_page['relativelink'])
+                CATEGORIES_PAGES.append(next_page)
 
 
 def write_data(item_data):
