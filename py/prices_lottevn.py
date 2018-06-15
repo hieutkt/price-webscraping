@@ -61,10 +61,9 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 grid = False
                 while grid is False:
                     try:
+                        time.sleep(2)
                         grid = BROWSER.find_element_by_css_selector('.item-product')
                     except Exception:
-                        time.sleep(0.5)
-                        grid += 1
                         pass
                 element = BROWSER.find_element_by_xpath("/html")
                 html_content = element.get_attribute("innerHTML")
@@ -106,7 +105,7 @@ def get_category_list(url):
     page_list = []
     for cat in categories:
         next_page = {}
-        link = re.sub(".+lotte\.vn", "", cat['href'])
+        link = re.sub(".+lotte\.vn", "", cat['href']) + "?count=120"
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
         next_page['name'] = re.sub("/|\\?.=", "_", link)
@@ -123,8 +122,8 @@ def scrap_data(cat):
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
     cat_div = cat_soup.findAll("div", {"class": "item-product"})
-    if cat_div is None:
-        print("Nothing found on" + cat['label'])
+    if len(cat_div) == 0:
+        print("Nothing found on " + cat['name'])
     for item in cat_div:
         row = {}
         good_name = item.find('p', {"class": "product-name"})
