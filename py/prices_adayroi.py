@@ -24,7 +24,7 @@ def daily_task():
     DATE = str(datetime.date.today())
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
-    fetch_html(BASE_URL, base_file_name, PATH_HTML)
+    fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
     html_file = open(PATH_HTML + base_file_name).read()
     CATEGORIES_PAGES = get_category_list(html_file)
     # Read each categories pages and scrape for data
@@ -38,13 +38,13 @@ def daily_task():
     compress_data()
 
 
-def fetch_html(url, file_name, path):
+def fetch_html(url, file_name, path, attempts_limit=5):
     """Fetch and download a html with provided path and file names"""
     if not os.path.exists(path):
         os.makedirs(path)
     if os.path.isfile(path + file_name) is False:
         attempts = 0
-        while attempts < 5:
+        while attempts < attempts_limit:
             try:
                 con = urlopen(url, timeout=5)
                 html_content = con.read()
