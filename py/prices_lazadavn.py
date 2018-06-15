@@ -22,15 +22,17 @@ OPTIONS = Options()
 OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
-# Initiate headless web browser
-BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                           chrome_options=OPTIONS)
 
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""
     global DATE
     global CATEGORIES_PAGES
+    global BROWSER
+    # Initiate headless web browser
+    BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                               chrome_options=OPTIONS)
+    # Refresh date
     DATE = str(datetime.date.today())
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
@@ -44,6 +46,8 @@ def daily_task():
         if download:
             scrap_data(cat)
             find_next_page(cat)
+    # Close browser
+    BROWSER.close()
     # Compress data and html files
     compress_data()
 
