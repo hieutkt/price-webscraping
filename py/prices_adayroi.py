@@ -120,7 +120,7 @@ def find_next_page(cat):
     next_button = cat_soup.find("a", {"class": "btn", "rel": "next"})
     if next_button:
         link = re.sub(".+adayroi\.com", "", next_button['href'])
-        if link not in [i['directlink'] for i in CATEGORIES_PAGES]:
+        if link not in [i['relativelink'] for i in CATEGORIES_PAGES]:
             next_page = cat.copy()
             next_page['relativelink'] = link
             next_page['directlink'] = BASE_URL + link
