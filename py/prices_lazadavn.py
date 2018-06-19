@@ -45,7 +45,7 @@ def daily_task():
         download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         if download:
             scrap_data(cat)
-            find_next_page(cat)
+            # find_next_page(cat)
     # Close browser
     BROWSER.close()
     # Compress data and html files
