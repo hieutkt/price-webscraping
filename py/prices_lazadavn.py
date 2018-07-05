@@ -45,7 +45,6 @@ def daily_task():
         download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         if download:
             scrap_data(cat)
-            # find_next_page(cat)
     # Close browser
     BROWSER.close()
     # Compress data and html files
@@ -100,51 +99,46 @@ def get_category_list(top_html):
 
 def scrap_data(cat):
     """Get item data from a category page and write to csv"""
-    cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
-                    DATE + ".html").read()
-    cat_soup = BeautifulSoup(cat_file, "lxml")
-    cat_div = cat_soup.findAll("div", {"class": "c2prKC"})
-    for item in cat_div:
-        row = {}
-        good_name = item.find('div', {"class": "c16H9d"})
-        row['good_name'] = good_name.a.get('title') if good_name else None
-        price = item.find('span', {"class": "c13VH6"})
-        row['price'] = price.contents[0] if price else None
-        old_price = item.find('del', {"class": "c13VH6"})
-        row['old_price'] = old_price.contents[0] if old_price else None
-        row['id'] = item.get('data-item-id') if item else None
-        row['category'] = cat['name']
-        row['category_label'] = cat['label']
-        row['date'] = DATE
-        write_data(row)
-
-
-def find_next_page(cat):
-    """Find the next page button and return the next page info"""
-    current_url = BROWSER.current_url
+    soup = BeautifulSoup(BROWSER.page_source, 'lxml')
+    page_count = soup.find_all('li', class_='ant-pagination-item')
+    if len(page_count) == 0:
+        page_count = '0'
+    else:
+        page_count = page_count[len(page_count) - 1]
+        page_count = page_count.get('title').strip()
+    print(page_count + ' pages')
     try:
-        BROWSER.find_element_by_css_selector('.ant-modal-close').click()
-    except Exception:
+        i = 0
+        while i < int(page_count):
+            if i != 0:
+                element = BROWSER.find_element_by_css_selector(
+                    ".ant-pagination-next > a:nth-child(1)"
+                )
+                BROWSER.execute_script("arguments[0].click();", element)
+                soup = BeautifulSoup(BROWSER.page_source, 'lxml')
+                list = soup.find_all('div', class_='c2prKC')
+            if i == 0 or i == int(page_count) - 1:
+                soup = BeautifulSoup(BROWSER.page_source, 'lxml')
+                list = soup.find_all('div', class_='c2prKC')
+            
+            for item in list:
+                row = {}
+                good_name = item.find('div', {"class": "c16H9d"})
+                row['good_name'] = good_name.a.get('title') if good_name else None
+                price = item.find('span', {"class": "c13VH6"})
+                row['price'] = price.contents[0] if price else None
+                old_price = item.find('del', {"class": "c13VH6"})
+                row['old_price'] = old_price.contents[0] if old_price else None
+                row['id'] = item.get('data-item-id') if item else None
+                row['category'] = cat['name']
+                row['category_label'] = cat['label']
+                row['date'] = DATE
+                write_data(row)
+            i += 1
+    except Exception as e:
+        print("Error on" + BROWSER.current_url)
+        print(e)
         pass
-    try:
-        next_button = BROWSER.\
-            find_element_by_css_selector(".ant-pagination-next")
-    except Exception:
-        next_button = None
-    if next_button is not None:
-        try:
-            next_button.click()
-        except Exception:
-            pass
-        link = BROWSER.current_url
-        if link != current_url:
-            if link not in [i['directlink'] for i in CATEGORIES_PAGES]:
-                next_page = cat.copy()
-                next_page['directlink'] = link
-                next_page['relativelink'] = re.sub(".+lazada\.vn", "", link)
-                next_page['name'] = re.sub("/|\\?.=", "_",
-                                           next_page['relativelink'])
-                CATEGORIES_PAGES.append(next_page)
 
 
 def write_data(item_data):
