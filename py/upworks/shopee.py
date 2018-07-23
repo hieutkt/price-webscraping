@@ -9,6 +9,8 @@ import re
 import schedule
 import selenium.webdriver.support.ui as ui
 import zipfile
+from selenium.webdriver.chrome.options import Options
+
 
 SITE_NAME = "shopee"
 BASE_URL = "https://shopee.vn"
@@ -17,9 +19,18 @@ PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 
 
+# Selenium options
+OPTIONS = Options()
+OPTIONS.add_argument('--headless')
+OPTIONS.add_argument('--disable-gpu')
+CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
+
+
 def write_csv(data):
+    fieldnames = ['category', 'sub_category', 'id', 'good_name',
+                  'brand', 'price', 'old_price', 'date']
     with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", 'a', newline='', encoding='utf-8-sig') as f:
-        writer = csv.DictWriter(f, delimiter=',')
+        writer = csv.DictWriter(f, fieldnames, delimiter=',')
         writer.writerow(data)
 
 def write_html(html, file_name):
@@ -29,10 +40,8 @@ def write_html(html, file_name):
 def daily_task():
     global DATE
     DATE = str(datetime.date.today())
-    chromeOptions = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images":2}
-    chromeOptions.add_experimental_option("prefs",prefs)
-    browser = webdriver.Chrome(chrome_options=chromeOptions)
+    browser = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                               chrome_options=OPTIONS)
     # browser = webdriver.Chrome()
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)
@@ -112,7 +121,7 @@ def daily_task():
 
                 data = {'category': category,
                         'id': item_id,
-                        'title_Vietnamese': title_Vietnamese,
+                        'good_name': title_Vietnamese,
                         'price': price,
                         'old_price': old_price,
                         'date': date}
