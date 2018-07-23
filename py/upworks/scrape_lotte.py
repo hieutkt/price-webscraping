@@ -4,8 +4,10 @@ import logging
 import re
 import zipfile
 import os
+import sys
+import schedule
+import time
 from os import listdir, path
-from os.path import dirname
 from os.path import join
 from time import sleep
 from lxml import etree
@@ -342,8 +344,7 @@ def main():
 
 LOGGER = configure_logging(logger_or_name='main')
 
-if __name__ == '__main__':
-
+def daily_task():
     try:
         LOGGER.info('starting to scrape....')
         main()
@@ -351,3 +352,11 @@ if __name__ == '__main__':
     except Exception as e:
         LOGGER.exception(e)
         raise e
+
+if "test" in sys.argv:
+    daily_task()
+else:
+    schedule.every().day.at("06:00").do(daily_task)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
