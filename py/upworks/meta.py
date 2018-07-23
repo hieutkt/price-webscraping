@@ -8,6 +8,8 @@ import glob, os
 import re
 import schedule
 import zipfile
+from selenium.webdriver.chrome.options import Options
+
 
 SITE_NAME = "meta"
 BASE_URL = "https://meta.vn"
@@ -15,10 +17,20 @@ PROJECT_PATH = re.sub('/py/upworks$', '', os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 
+# Selenium options
+OPTIONS = Options()
+OPTIONS.add_argument('--headless')
+OPTIONS.add_argument('--disable-gpu')
+CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
+# prefs = {"profile.managed_default_content_settings.images":2}
+# OPTIONS.add_experimental_option("prefs",prefs)
+
 
 def write_csv(data):
+    fieldnames = ['category', 'sub_category', 'id', 'good_name',
+                  'brand', 'price', 'old_price', 'date']
     with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", 'a', newline='', encoding='utf-8-sig') as f:
-        writer = csv.DictWriter(f, delimiter=',')
+        writer = csv.DictWriter(f, fieldnames, delimiter=',')
         writer.writerow(data)
 
 def write_html(html, file_name):
@@ -28,10 +40,8 @@ def write_html(html, file_name):
 def daily_task():
     global DATE
     DATE = str(datetime.date.today())
-    chromeOptions = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images":2}
-    chromeOptions.add_experimental_option("prefs",prefs)
-    browser = webdriver.Chrome(chrome_options=chromeOptions)
+    browser = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                               chrome_options=OPTIONS)
     # browser = webdriver.Chrome()
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)
@@ -58,7 +68,8 @@ def daily_task():
         browser.get(urls[j])
         soup = BeautifulSoup(browser.page_source, 'lxml')
 
-        category_titles = soup.find('ol', class_='breadcrum').find_all('li', class_='breadcrum-item')
+        category_titles = soup.find('ol', class_='breadcrum')
+        category_titles = category_titles.find_all('li', class_='breadcrum-item') if category_titles else None
         if len(category_titles) == 2:
             category = category_titles[1].find('a').text.strip()
             sub_category = None
@@ -121,7 +132,7 @@ def daily_task():
                 data = {'category': category,
                         'sub_category': sub_category,
                         'id': item_id,
-                        'title_Vietnamese': title_Vietnamese,
+                        'good_name': title_Vietnamese,
                         'brand': brand,
                         'price': price,
                         'old_price': old_price,
@@ -155,7 +166,7 @@ def compress_data():
         z.write(file)
         os.remove(file)
 
-if "test" in sys.agrv:
+if "test" in sys.argv:
     daily_task()
 else:
     schedule.every().day.at("06:00").do(daily_task)
