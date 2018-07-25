@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 
 
 # Parameters
-SITE_NAME = "123wow"
-BASE_URL = "https://123wow.vn/"
+SITE_NAME = "gcaeco"
+BASE_URL = "https://gcaeco.vn"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
@@ -68,13 +68,11 @@ def get_category_list(top_html):
     """Get list of relative categories directories from the top page"""
     page_list = []
     toppage_soup = BeautifulSoup(top_html, "lxml")
-    categories = toppage_soup.find('ul', {'id': 'sample-menu-1'})
-    categories = categories.findAll('li')
-    categories_tag = [cat.findAll('a') for cat in categories]
-    categories_tag = [item for sublist in categories_tag for item in sublist]
+    categories = toppage_soup.find('div', {'class': 'list-cate-menu'})
+    categories_tag = categories.findAll('a')
     for cat in categories_tag:
         page = {}
-        link = re.sub(".+123wow\.vn/", "", cat['href'])
+        link = re.sub(".+gcaeco\.vn/", "", cat['href'])
         page['relativelink'] = link
         page['directlink'] = BASE_URL + link
         page['name'] = re.sub("/|\\?.=", "_", link)
@@ -90,21 +88,24 @@ def scrap_data(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    cat_div = cat_soup.findAll("div", {"class": "product-inner clearfix"})
+    cat_div = cat_soup.find("div", {"class": "product-in-store"})
+    cat_div = cat_div.findAll("div", {"class": "col-lg-5-12-item"}) if cat_div else None
     if cat_div is None:
         cat_div = []
     for item in cat_div:
         row = {}
-        good_name = item.find('div', {"class": "name"})
-        row['good_name'] = good_name.text if good_name else None
-        price = item.find('span', {"class": "price-new"})
-        if price is None:
-            price = item.find('div', {'class': 'price'})
+        good_name = item.find('h3')
+        row['good_name'] = good_name.text.strip() if good_name else None
+        price = item.find('p', {"class": "price"})
+        old_price = price.find('del')
         row['price'] = price.text.strip() if price else None
-        old_price = item.find('span', {"class": "price-old"})
-        row['old_price'] = old_price.text if old_price else None
+        row['old_price'] = str(old_price.text).strip() if old_price else None
         id1 = good_name.find("a")
         row['id'] = id1.get('href') if id1 else None
+        location = item.find('p', {'class': 'price marker'})
+        row['location'] = location.text.strip() if location else None
+        brand = item.find('p', {'class': 'price shop'})
+        row['brand'] = brand.text.strip() if brand else None
         row['category'] = cat['name']
         row['category_label'] = cat['label']
         row['date'] = DATE
@@ -116,18 +117,18 @@ def find_next_page(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    pagination = cat_soup.find('div', {'class': 'pagination'})
+    pagination = cat_soup.find('ul', {'class': 'pagination'})
     if pagination:
         pagination_a = pagination.findAll('a')
         pagination_text = [p.text for p in pagination_a]
-        if '>' in pagination_text:
-            next_button = pagination_a[pagination_text.index('>')]
+        if '»' in pagination_text:
+            next_button = pagination_a[pagination_text.index('»')]
         else:
             next_button = None
     else:
         next_button = None
     if next_button:
-        link = re.sub(".+123wow\.vn", "", next_button['href'])
+        link = re.sub(".+gcaeco\.vn", "", next_button['href'])
         if link not in [i['relativelink'] for i in CATEGORIES_PAGES]:
             next_page = cat.copy()
             next_page['relativelink'] = link
@@ -138,7 +139,7 @@ def find_next_page(cat):
 
 def write_data(item_data):
     """Write an item data as a row in csv. Create new file if needed"""
-    fieldnames = ['good_name', 'price', 'old_price', 'id',
+    fieldnames = ['good_name', 'price', 'old_price', 'id', 'location', 'brand', 
                   'category', 'category_label', 'date']
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
     if not os.path.exists(PATH_CSV):

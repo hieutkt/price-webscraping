@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 
 
 # Parameters
-SITE_NAME = "123wow"
-BASE_URL = "https://123wow.vn/"
+SITE_NAME = "fptshop"
+BASE_URL = "https://fptshop.com.vn/"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
@@ -68,13 +68,13 @@ def get_category_list(top_html):
     """Get list of relative categories directories from the top page"""
     page_list = []
     toppage_soup = BeautifulSoup(top_html, "lxml")
-    categories = toppage_soup.find('ul', {'id': 'sample-menu-1'})
+    categories = toppage_soup.find('nav', {'class': 'fs-menu'})
     categories = categories.findAll('li')
     categories_tag = [cat.findAll('a') for cat in categories]
     categories_tag = [item for sublist in categories_tag for item in sublist]
     for cat in categories_tag:
         page = {}
-        link = re.sub(".+123wow\.vn/", "", cat['href'])
+        link = re.sub(".+fptshop\.com\.vn/", "", cat['href'])
         page['relativelink'] = link
         page['directlink'] = BASE_URL + link
         page['name'] = re.sub("/|\\?.=", "_", link)
@@ -90,19 +90,18 @@ def scrap_data(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    cat_div = cat_soup.findAll("div", {"class": "product-inner clearfix"})
+    cat_div = cat_soup.find("div", {"class": "fs-carow"})
+    cat_div = cat_div.findAll("div", {"class": "fs-lapitem"}) if cat_div else None
     if cat_div is None:
         cat_div = []
     for item in cat_div:
         row = {}
-        good_name = item.find('div', {"class": "name"})
-        row['good_name'] = good_name.text if good_name else None
-        price = item.find('span', {"class": "price-new"})
-        if price is None:
-            price = item.find('div', {'class': 'price'})
+        good_name = item.find('h3')
+        row['good_name'] = good_name.text.strip() if good_name else None
+        price = item.find('p', {"class": "fs-ilap-pri"})
         row['price'] = price.text.strip() if price else None
-        old_price = item.find('span', {"class": "price-old"})
-        row['old_price'] = old_price.text if old_price else None
+        old_price = item.find('del', {"class": "fs-ilap-pridel"})
+        row['old_price'] = old_price.text.strip() if old_price else None
         id1 = good_name.find("a")
         row['id'] = id1.get('href') if id1 else None
         row['category'] = cat['name']
@@ -116,18 +115,15 @@ def find_next_page(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    pagination = cat_soup.find('div', {'class': 'pagination'})
+    pagination = cat_soup.find('div', {'class': 'f-cmtpaging'})
     if pagination:
-        pagination_a = pagination.findAll('a')
-        pagination_text = [p.text for p in pagination_a]
-        if '>' in pagination_text:
-            next_button = pagination_a[pagination_text.index('>')]
-        else:
-            next_button = None
+        current_button = pagination.find('li', {'class': 'active'})
+        next_button = current_button.findNext('li')
+        next_button = next_button.find('a') if next_button else None
     else:
         next_button = None
     if next_button:
-        link = re.sub(".+123wow\.vn", "", next_button['href'])
+        link = re.sub(".+fptshop\.com\.vn", "", next_button['href'])
         if link not in [i['relativelink'] for i in CATEGORIES_PAGES]:
             next_page = cat.copy()
             next_page['relativelink'] = link
