@@ -21,13 +21,14 @@ PROJECT_PATH = re.sub("/py/upworks$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 
+
 # Selenium options
 OPTIONS = Options()
 OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 # prefs = {"profile.managed_default_content_settings.images":2}
-# chromeOptions.add_experimental_option("prefs",prefs)
+# OPTIONS.add_experimental_option("prefs",prefs)
 
 
 def write_csv(data):
