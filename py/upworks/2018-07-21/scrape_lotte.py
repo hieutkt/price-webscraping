@@ -3,17 +3,17 @@ import datetime
 import logging
 import re
 import zipfile
-import os
 import sys
 import schedule
 import time
 from os import listdir, path
+from os.path import dirname
 from os.path import join
 from time import sleep
 from lxml import etree
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.webdriver import ChromeOptions, DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,32 +21,41 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # SETTINGS FOR PROJECT
 
-TIMEOUT = 20
-PROJECT_DIR = re.sub("/py/upworks$", "", os.getcwd())
+TIMEOUT = 30
+
+PROJECT_DIR = dirname(__file__)
+
 OUTPUT_HTML_PATH = join(PROJECT_DIR, 'saved_html')
+
 CHROME_DRIVER_PATH = join(PROJECT_DIR, 'driver', 'chromedriver')
+
 TEST_HTML_FILES_DIR = join(PROJECT_DIR, 'tests', 'html_pages_for_test')
+
 OUTPUT_CSV_PATH = join(PROJECT_DIR, 'output.csv')
-HEADERS = ['date', 'id', 'good_name', 'category', 'category_label',
-           'price', 'old_price']
+
+HEADERS = ['date', 'id', 'good_name', 'category', 'category_label', 'price', 'old_price']
 
 # DRIVER SETTINGS
-OPTIONS = Options()
-# OPTIONS.add_argument('--headless')
-OPTIONS.add_argument('--disable-gpu')
-CHROME_DRIVER = PROJECT_DIR + "/bin/chromedriver"  # Chromedriver v2.38
-CHROME_DRIVER = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                                 options=OPTIONS)
+chrome_options = ChromeOptions()
+
+# chrome_options.add_argument('headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('headless')
+chrome_options.add_argument("start-maximized")
+
+
+CHROME_DRIVER = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, options=chrome_options)
 
 
 # Logging configuration
 LOG_FILE = ''
-LOG_FILE = join(PROJECT_DIR, 'log/lotte.log') # uncomment this line to output logs to FILE
+# LOG_FILE = join(PROJECT_DIR, 'logs.log') # uncomment this line to output logs to FILE
 LOG_LEVEL = logging.INFO  # can be set to logging.DEBUG to see all the flow
 LOG_FORMAT = '%(asctime)s;%(name)s;%(levelname)s: %(message)s'
 
 
 # DOWNLOADER BLOCK
+
 
 class PageWalker:
     """
@@ -54,6 +63,7 @@ class PageWalker:
     includes checking if the js on the page was loaded
 
     """
+
     def __init__(self, driver, expected_condition):
         self.driver = driver
         self.expected_condition = expected_condition
@@ -67,19 +77,19 @@ class PageWalker:
         return self.driver.page_source
 
     def set_check_waits(self, expected_condition):
-        WebDriverWait(self.driver,
+        el = WebDriverWait(self.driver,
                       TIMEOUT, poll_frequency=1).until(expected_condition)
+        return el
 
     @staticmethod
     def save_page(_path, string):
-        if not os.path.exists(os.path.dirname(_path)):
-            os.mkdir(os.path.dirname(_path))
         with open(_path, 'w') as f:
             f.write(string)
 
     @staticmethod
     def generate_desc_path(link):
         # function to generate descriptive path
+
         name_file = link.split('/')[-1] if link.endswith('.html') else link.split('/')[-1] + '.html'
         return join(OUTPUT_HTML_PATH, name_file)
 
@@ -92,7 +102,10 @@ class PageWalker:
 
 
 # EXTRACTOR BLOCK
+
+
 class LotteExtractor:
+
     def __init__(self, input_html_path, field_loader):
         """
         class which purpose is to read html file
@@ -175,45 +188,36 @@ def get_categories(driver):
 
 def load_pages(driver, category_link):
     page_walker = PageWalker(driver, expected_condition=EC.visibility_of_element_located((
-        By.XPATH, '//div[@class="products-cate-list"]/div[@class="item-product"]')))
+        By.XPATH, '//a[@class="button-border"]')))
     driver.get(category_link)
-
     LOGGER.info('loading pages for category %s' % category_link)
-    new_url = ''
-    # after clicking 'next' on the most last page, the url won't change
-    retry = 0
+    page = 0
+    retried =0
     while True:
-        if new_url:
-            saved_html = page_walker.process_link(new_url)
-        else:
-            saved_html = page_walker.process_link(category_link)
-        old_link = driver.current_url
-        WebDriverWait(driver, TIMEOUT, 0.5).until(EC.visibility_of_element_located((
-            By.XPATH, '//div[@class="products-cate-list"]/div[@class="item-product"]')))
-        element = WebDriverWait(driver, TIMEOUT, 0.5).until(EC.element_to_be_clickable((
-            By.XPATH, '//li[@class="item pages-item-next"]')))
         try:
-            element.click()
-        except WebDriverException:
-            driver.execute_script("arguments[0].scrollIntoView(true);", element)
-            # driver.implicitly_wait(2)
-            element.click()
-        new_url = driver.current_url
-        if old_link == new_url:
-            retry += 1  # sometimes website ignores click
-            sleep(0.5) # implicity wait was ignored in chromedriver, use python sleep instead
-            if retry == 10:
+            load_process =page_walker.set_check_waits(EC.visibility_of_element_located(
+                (By.XPATH, '//div[@class="product-showed-bar"]/p'))).text
+            loaded, to_load = re.search(r'([\d]+)/([\d]+)', load_process).group(1, 2) # grab how many products loaded
+            LOGGER.info('products loaded %s of %s' % (loaded, to_load))
+            page_walker.set_check_waits(EC.element_to_be_clickable((
+                By.XPATH, '//a[@class="button-border"]')))
+        except TimeoutException:
+            retried+=1
+            if retried == 5:
+                LOGGER.info('category scraped')
                 break
-            continue
-        retry=0
-        yield saved_html  # this is path of saved html file
+        saved_path = page_walker.generate_desc_path(driver.current_url)
+        page_walker.save_page(saved_path, driver.page_source)
+        page+=1
+        driver.get(category_link + '?page=%s'%page)
+        yield saved_path  # this is path of saved html file
 
 
 def scrape_page(html_file_path, field_loader):
     extractor = LotteExtractor(input_html_path=html_file_path,
                                field_loader=field_loader)
     product_elements = extractor.tree.findall(
-        '//div[@class="products-grid products-list"]//div[@class="item-product"]')
+        '//div[@class="products-cate-list"]//div[@class="item-product"]')
     for product_el in product_elements:
         extractor.scrape_values(element=product_el)
         product_dict = extractor.output_values()
@@ -227,18 +231,18 @@ def declare_fields():
 
     field_loader.add_field(FieldToExtract(
         column='id',
-        xpath='.//div[@class="product-info"]/div',
-        adjust_func=lambda x: x[0].attrib['data-product-id']
+        xpath='.//a',
+        adjust_func=lambda x: re.search(r'product/([\d]+)/',x[0].attrib['href']).group(1)
     ))
     field_loader.add_field(FieldToExtract(
         column='category',
-        xpath='//div[@class="subcate-content"]',
-        adjust_func=lambda x: x[0].find('.//a').attrib['href']
+        xpath='//li[@class="subcate"]',
+        adjust_func=lambda x: x[1].find('.//a').attrib['href']
     ))
     field_loader.add_field(FieldToExtract(
         column='category_label',
-        xpath='//div[@class="subcate-content"]',
-        adjust_func=lambda x: x[0].find('.//a').text
+        xpath='//li[@class="subcate"]',
+        adjust_func=lambda x: x[1].find('.//a').text
     ))
     field_loader.add_field(FieldToExtract(
         column='date',
@@ -248,17 +252,17 @@ def declare_fields():
     ))
     field_loader.add_field(FieldToExtract(
         column='price',
-        xpath='.//span[@class="current-price"]/span[@class="final-price"]',
-        adjust_func=lambda x: str(re.search(r'[\d.]+', x[0].text).group())
+        xpath='.//span[@class="current-price"]',
+        adjust_func=lambda x: x[0].text
     ))
     field_loader.add_field(FieldToExtract(
         column='old_price',
-        xpath='.//p[@class="old-price"]/span[@class="final-price"]',
-        adjust_func=lambda x: str(re.search(r'[\d.]+', x[0].text).group()) if x else None
+        xpath='.//span[@class="old-price"]',
+        adjust_func=lambda x: x[0].text if x else None
     ))
     field_loader.add_field(FieldToExtract(
         column='good_name',
-        xpath='.//p[@class="product-name"]/a',
+        xpath='.//div[@class="field-name"]/a',
         adjust_func=lambda x: x[0].text
     ))
 
@@ -286,6 +290,7 @@ def configure_logging(logger_or_name=None, level=None, format=None):
     _format = format if format else LOG_FORMAT
     _level = level if level else LOG_LEVEL
     _name = logger_or_name if logger_or_name else __file__
+
     logger = logging.getLogger(_name)
     logger.setLevel(_level)
     if LOG_FILE:
@@ -312,6 +317,7 @@ def zip_files(archive_name):
 
 
 # main
+
 def main():
     DRIVER = CHROME_DRIVER
     FIELD_LOADER = declare_fields()
