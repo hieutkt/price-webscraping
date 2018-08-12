@@ -6,6 +6,7 @@ import zipfile
 import sys
 import schedule
 import time
+import os
 from os import listdir, path
 from os.path import dirname
 from os.path import join
@@ -20,18 +21,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 # SETTINGS FOR PROJECT
+SITE_NAME = 'lottevn'
 
 TIMEOUT = 30
 
-PROJECT_DIR = dirname(__file__)
+PROJECT_DIR = re.sub("/py.+", "", os.getcwd())
 
-OUTPUT_HTML_PATH = join(PROJECT_DIR, 'saved_html')
+OUTPUT_HTML_PATH =  PROJECT_DIR + "/html/" + SITE_NAME + "/"
 
-CHROME_DRIVER_PATH = join(PROJECT_DIR, 'driver', 'chromedriver')
+CHROME_DRIVER_PATH = PROJECT_DIR + '/bin/chromedriver'
 
 TEST_HTML_FILES_DIR = join(PROJECT_DIR, 'tests', 'html_pages_for_test')
 
-OUTPUT_CSV_PATH = join(PROJECT_DIR, 'output.csv')
+OUTPUT_CSV_PATH = PROJECT_DIR + "/csv/" + SITE_NAME + "/lottevn.csv"
 
 HEADERS = ['date', 'id', 'good_name', 'category', 'category_label', 'price', 'old_price']
 
@@ -338,7 +340,7 @@ def main():
                     writer = csv.DictWriter(f, HEADERS)
                     writer.writerow(product_dict)
             LOGGER.info('%s products scraped for page %s' % (products_counter, page_path.split('/')[-1]))
-    archive_filename = str(datetime.date.today())  # no need to add '.zip' it adds internally
+    archive_filename = "lottevn_" + str(datetime.date.today())  # no need to add '.zip' it adds internally
     zip_files(archive_filename)
 
 
