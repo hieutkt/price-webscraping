@@ -27,13 +27,19 @@ CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
 def write_csv(data):
-    fieldnames = ['category', 'sub_category', 'id', 'good_name',
-                  'brand', 'price', 'old_price', 'date']
+    file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
     with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", 'a', newline='', encoding='utf-8-sig') as f:
-        writer = csv.DictWriter(f, fieldnames, delimiter=',')
-        writer.writerow(data)
+        writer = csv.writer(f, delimiter=',')
+        if not file_exists:
+            writer.writerow(('category', 'sub_category', 'id', 'good_name', 'brand', 'price', 'old_price', 'date'))
+        writer.writerow((data['category'], data['sub_category'], data['id'], data['good_name'], data['brand'], data['price'],data['old_price'], data['date']))
+
 
 def write_html(html, file_name):
+    if not os.path.exists(PATH_HTML):
+        os.makedirs(PATH_HTML)
     with open(PATH_HTML + file_name + SITE_NAME + "_" + DATE + ".html", 'a', encoding='utf-8-sig') as f:
         f.write(html)
 

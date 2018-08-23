@@ -11,6 +11,7 @@ import zipfile
 from selenium.webdriver.support.ui import Select
 import selenium.webdriver.support.ui as ui
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 
 
@@ -32,11 +33,19 @@ CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
 def write_csv(data):
+    file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
     with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", 'a', newline='', encoding='utf-8-sig') as f:
-        writer = csv.DictWriter(f, delimiter=',')
-        writer.writerow(data)
+        writer = csv.writer(f, delimiter=',')
+        if not file_exists:
+            writer.writerow(('category', 'id', 'title_Vietnamese', 'location', 'price', 'old_price', 'date'))
+        writer.writerow((data['category'], data['id'], data['title_Vietnamese'], data['location'], data['price'],data['old_price'], data['date']))
+
 
 def write_html(html, file_name):
+    if not os.path.exists(PATH_HTML):
+        os.makedirs(PATH_HTML)
     with open(PATH_HTML + file_name + SITE_NAME + "_" + DATE + ".html", 'a', encoding='utf-8-sig') as f:
         f.write(html)
 
@@ -52,13 +61,18 @@ def daily_task():
     wait = ui.WebDriverWait(browser,60)
     soup = BeautifulSoup(browser.page_source, 'lxml')
     # browser.find_element_by_xpath('//*[@id="province-change"]').click()
-    wait.until(lambda browser: browser.find_element_by_css_selector('#Modal-choiceProvince > div > div > div'))
-    select = Select(browser.find_element_by_xpath('//*[@id="txtProvince"]'))
-    select.select_by_value('62') # Hanoi
-    location = "Hà Nội"
-    browser.find_element_by_xpath('//*[@id="confirmChoiceProvince"]').click()
+    try:
+        wait.until(lambda browser: browser.find_element_by_css_selector('#Modal-choiceProvince > div > div > div'))
+        select = Select(browser.find_element_by_xpath('//*[@id="txtProvince"]'))
+        select.select_by_value('62') # Hanoi
+        location = "Hà Nội"
+        browser.find_element_by_xpath('//*[@id="confirmChoiceProvince"]').click()
+    except TimeoutException:
+        # location = browser.find_element_by_xpath('//*[@id="province-choosen"]').text.strip()
+        location = "TP Hồ Chí Minh"
     urls = []
     titles = []
+    soup = BeautifulSoup(browser.page_source, 'lxml')
     main_category_list = soup.find('div', id='for-home').find_all('div', class_='menu_list')
     for item in main_category_list:
         href = BASE_URL + item.find('a').get('href')

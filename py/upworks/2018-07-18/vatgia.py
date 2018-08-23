@@ -27,13 +27,18 @@ CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
 def write_csv(data):
-    fieldnames = ['category', 'sub_category', 'id', 'good_name', 
-                  'location', 'price', 'old_price', 'date']
+    file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
     with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", 'a', newline='', encoding='utf-8-sig') as f:
-        writer = csv.DictWriter(f, fieldnames, delimiter=',')
-        writer.writerow(data)
+        writer = csv.writer(f, delimiter=',')
+        if not file_exists:
+            writer.writerow(('category', 'sub_category', 'id', 'good_name', 'location', 'price', 'old_price', 'date'))
+        writer.writerow((data['category'], data['sub_category'], data['id'], data['good_name'], data['location'], data['price'],data['old_price'], data['date']))
 
 def write_html(html, file_name):
+    if not os.path.exists(PATH_HTML):
+        os.makedirs(PATH_HTML)
     with open(PATH_HTML + file_name + SITE_NAME + "_" + DATE + ".html", 'a', encoding='utf-8-sig') as f:
         f.write(html)
 
@@ -70,6 +75,7 @@ def daily_task():
     j=0
     while j < len(urls):
         browser.get(urls[j])
+        time.sleep(3)
         soup = BeautifulSoup(browser.page_source, 'lxml')
 
         category_titles = soup.find('div', id='header_navigate_breadcrumb').find_all('a')
@@ -85,11 +91,16 @@ def daily_task():
 
         # print(page_count)
 
+        time.sleep(3)
+        soup = BeautifulSoup(browser.page_source, 'lxml')
         i=0
-        page_count = soup.find('div', class_='page_bar').find('a', class_='last').get('href')
-        page_count = page_count.split(',')
-        page_count = page_count[len(page_count)-1]
-        page_count = page_count.strip()
+        try:
+            page_count = soup.find('div', class_='page_bar_wrapper').find('a', class_='last').get('href')
+            page_count = page_count.split(',')
+            page_count = page_count[len(page_count)-1]
+            page_count = page_count.strip()
+        except:
+            page_count = "1"
         while i < int(page_count):
             soup = BeautifulSoup(browser.page_source, 'lxml')
             if i != 0:

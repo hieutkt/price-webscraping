@@ -32,11 +32,19 @@ CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
 def write_csv(data):
+    file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
     with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", 'a', newline='', encoding='utf-8-sig') as f:
-        writer = csv.DictWriter(f, delimiter=',')
-        writer.writerow(data)
+        writer = csv.writer(f, delimiter=',')
+        if not file_exists:
+            writer.writerow(('category', 'seller', 'id', 'good_name', 'price', 'old_price', 'date'))
+        writer.writerow((data['category'], data['seller'], data['id'], data['good_name'], data['price'],data['old_price'], data['date']))
+
 
 def write_html(html, file_name):
+    if not os.path.exists(PATH_HTML):
+        os.makedirs(PATH_HTML)
     with open(PATH_HTML + file_name + SITE_NAME + "_" + DATE + ".html", 'a', encoding='utf-8-sig') as f:
         f.write(html)
 
@@ -103,7 +111,11 @@ def daily_task():
     j=0
     while j < len(urls):
         browser.get(urls[j])
-        wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="app"]/div/div[2]/div/h4'))
+        try:
+            wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="app"]/div/div[2]/div/h4'))
+        except TimeoutException:
+            j+=1
+            continue
         soup = BeautifulSoup(browser.page_source, 'lxml')
         seller = soup.find('span', class_='_2S39cc96K0t16Uhtllv-CO').text.strip()
         category = soup.find('h4', class_='_1D3-Pi2MFSGjD8bd09uC-u').text.strip()
@@ -166,11 +178,11 @@ def daily_task():
                 data = {'category': category,
                         'seller': seller,
                         'id': item_id,
-                        'title_English': title_English,
+                        'good_name': title_English,
                         # 'brand': brand,
                         'price': price,
                         'old_price': old_price,
-                        'date': date}
+                        'date': DATE}
                 write_csv(data)
             file_name = str(j+1) + "_" + str(i+1) + "_"
             write_html(browser.page_source, file_name)
