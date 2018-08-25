@@ -108,7 +108,7 @@ def scrap_data(cat_name):
             good_name = item.find('h3')
             row['good_name'] = good_name.contents[0] if good_name else None
         price = item.find('strong')
-        row['price'] = price.contents[0] if price else None
+        row['price'] = price.text if price else None
         old_price = item.find('cite')
         row['old_price'] = old_price.contents[0] if old_price else None
         id1 = item.find('a')
