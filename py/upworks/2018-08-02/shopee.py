@@ -26,7 +26,11 @@ OPTIONS.add_argument('--disable-gpu')
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
+
 def write_csv(data):
+    file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
     fieldnames = ['category', 'sub_category', 'id', 'good_name',
                   'brand', 'price', 'old_price', 'date']
     with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", 'a', newline='', encoding='utf-8-sig') as f:
