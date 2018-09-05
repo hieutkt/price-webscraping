@@ -10,6 +10,8 @@ import schedule
 import zipfile
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
 
 
 SITE_NAME = "mywork"
@@ -92,10 +94,17 @@ def daily_task():
                         # print(class_name)
                         if "active" in class_name:
                             if len(elements)-1 >= c+1:
-                                href_glob = elements[c+1].find_element_by_css_selector('a').get_attribute("href")
-                                browser.get(href_glob)
-                                c+=1
-                                break
+                                try:
+                                    href_glob = elements[c+1].find_element_by_css_selector('a').get_attribute("href")
+                                    browser.get(href_glob)
+                                    c+=1
+                                    break
+                                except TimeoutException:
+                                    pagination = False
+                                    break
+                                except:
+                                    pagination = False
+                                    break
                             else:
                                 pagination = False
                                 c+=1
@@ -127,8 +136,6 @@ def daily_task():
                     href = BASE_URL + item.find('a').get('href')
                     browser2.get(href)
                     soup = BeautifulSoup(browser2.page_source, 'lxml')
-                except NoSuchElementException:
-                    continue
                 except TimeoutException:
                     continue
                 except:
