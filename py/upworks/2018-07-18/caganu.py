@@ -14,23 +14,13 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 
-
-
 SITE_NAME = "caganu"
 BASE_URL = "https://caganu.com"
-PROJECT_PATH = re.sub("/py/upworks$", "", os.getcwd())
+PROJECT_PATH = os.getcwd()
+PROJECT_PATH = PROJECT_PATH.replace("\\",'/')
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
-
-
-# Selenium options
-OPTIONS = Options()
-OPTIONS.add_argument('--headless')
-OPTIONS.add_argument('--disable-gpu')
-CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
-# prefs = {"profile.managed_default_content_settings.images":2}
-# OPTIONS.add_experimental_option("prefs",prefs)
-
+CHROME_DRIVER_PATH = "bin/chromedriver"
 
 def write_csv(data):
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
@@ -52,9 +42,12 @@ def write_html(html, file_name):
 def daily_task():
     global DATE
     DATE = str(datetime.date.today())
-    browser = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                               chrome_options=OPTIONS)
-    # browser = webdriver.Chrome()
+    chromeOptions = webdriver.ChromeOptions()
+    prefs = {"profile.managed_default_content_settings.images":2}
+    chromeOptions.add_argument("--headless")
+    chromeOptions.add_experimental_option("prefs",prefs)
+    browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
+    # browser = webdriver.Chrome(chrome_options=chromeOptions)
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)
     browser.get(BASE_URL)
@@ -72,13 +65,16 @@ def daily_task():
         location = "TP Hồ Chí Minh"
     urls = []
     titles = []
-    soup = BeautifulSoup(browser.page_source, 'lxml')
-    main_category_list = soup.find('div', id='for-home').find_all('div', class_='menu_list')
-    for item in main_category_list:
-        href = BASE_URL + item.find('a').get('href')
-        title = item.find('div', class_='menu_title').text.strip()
-        urls.append(href)
-        titles.append(title)
+    try:
+        soup = BeautifulSoup(browser.page_source, 'lxml')
+        main_category_list = soup.find('div', id='for-home').find_all('div', class_='menu_list')
+        for item in main_category_list:
+            href = BASE_URL + item.find('a').get('href')
+            title = item.find('div', class_='menu_title').text.strip()
+            urls.append(href)
+            titles.append(title)
+    except:
+        urls = ['https://caganu.com/cau-ca', 'https://caganu.com/bat-lua-zippo', 'https://caganu.com/tui-xach-vali-tui-du-lich', 'https://caganu.com/thoi-trang-va-du-lich', 'https://caganu.com/nha-cua-doi-song', 'https://caganu.com/tv-video-am-thanh-game', 'https://caganu.com/vat-nuoi', 'https://caganu.com/tre-so-sinh-va-tre-nho', 'https://caganu.com/suc-khoe-va-lam-dep', 'https://caganu.com/do-gia-dung', 'https://caganu.com/dong-ho-mat-kinh-trang-suc-zippo', 'https://caganu.com/do-choi-va-tro-choi', 'https://caganu.com/the-thao-da-ngoai']
     j=0
     write_html(browser.page_source, "All_cat_")
     while j < len(urls):
@@ -110,9 +106,14 @@ def daily_task():
                     browser.execute_script("arguments[0].click();", element)
                     # elements[c+1].click()
                     break
-                wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="CategoryContent"]/div/div/div[2]/div[4]/div/div/nav/ul'))
-                soup = BeautifulSoup(browser.page_source, 'lxml')
-                list = soup.find_all('div', class_='category-list-product-item')
+                try:
+                    wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="CategoryContent"]/div/div/div[2]/div[4]/div/div/nav/ul'))
+                    soup = BeautifulSoup(browser.page_source, 'lxml')
+                    list = soup.find_all('div', class_='category-list-product-item')
+                except TimeoutException:
+                    break
+                except:
+                    break
             if i == 0:
                 soup = BeautifulSoup(browser.page_source, 'lxml')
                 list = soup.find_all('div', class_='category-list-product-item')
@@ -186,3 +187,6 @@ else:
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+# if __name__ == '__main__':
+#     daily_task()

@@ -70,10 +70,12 @@ def daily_task():
     write_html(browser.page_source, "All_cat_")
     while j < len(urls):
         browser.get(urls[j])
-
-        wait.until(lambda browser: browser.find_element_by_css_selector('#main-content > div > div > div > div.col-xs-12.col-sm-8.col-md-8.col-lg-8.padding0.w67p.marginBottom30.marginBottom10-mb > h2 > span:nth-child(2)'))
-        category = browser.find_element_by_css_selector('#main-content > div > div > div > div.col-xs-12.col-sm-8.col-md-8.col-lg-8.padding0.w67p.marginBottom30.marginBottom10-mb > h2 > span:nth-child(2)').text.replace('"', '').strip()
-
+        try:
+            wait.until(lambda browser: browser.find_element_by_css_selector('#main-content > div > div > div > div.col-xs-12.col-sm-8.col-md-8.col-lg-8.padding0.w67p.marginBottom30.marginBottom10-mb > h2 > span:nth-child(2)'))
+            category = browser.find_element_by_css_selector('#main-content > div > div > div > div.col-xs-12.col-sm-8.col-md-8.col-lg-8.padding0.w67p.marginBottom30.marginBottom10-mb > h2 > span:nth-child(2)').text.replace('"', '').strip()
+        except TimeoutException:
+            j+=1
+            continue
         i=0
         pagination = True
         while pagination:
@@ -119,14 +121,16 @@ def daily_task():
             # print(len(list))
             # print(i+1)
             for item in list:
-                if item.find('h2', class_='job-name').find('a') == None:
-                    continue
-                else:
-                    href = item.find('h2', class_='job-name').find('a').get('href')
-                    try:
-                        browser2.get(href)
-                    except TimeoutException:
+                try:
+                    if item.find('h3', class_='job-name').find('a') == None:
                         continue
+                except:
+                    continue
+                href = item.find('h3', class_='job-name').find('a').get('href')
+                try:
+                    browser2.get(href)
+                except TimeoutException:
+                    continue
                 
                 soup = BeautifulSoup(browser2.page_source, 'lxml')
                 

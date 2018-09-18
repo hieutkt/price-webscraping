@@ -10,6 +10,7 @@ import schedule
 import zipfile
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 
 
 SITE_NAME = "nhadatviet247"
@@ -45,7 +46,7 @@ def daily_task():
     chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
     browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
-    # browser = webdriver.Chrome()
+    # browser = webdriver.Chrome(chrome_options=chromeOptions)
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)
     wait = ui.WebDriverWait(browser,60)
@@ -53,8 +54,12 @@ def daily_task():
     j=0
     while j < len(urls):
         browser.get(urls[j])
-        wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))
-        soup = BeautifulSoup(browser.page_source, 'lxml')
+        try:
+            wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))
+            soup = BeautifulSoup(browser.page_source, 'lxml')
+        except TimeoutException:
+            j+=1
+            continue
 
         category_titles = soup.find('div', class_='top-link').find_all('a')
         if len(category_titles) == 2:
@@ -65,6 +70,7 @@ def daily_task():
             category = category_titles[1].text.strip()
 
         i=0
+        p=0
         pagination = True
         while pagination:
             soup = BeautifulSoup(browser.page_source, 'lxml')
@@ -74,10 +80,20 @@ def daily_task():
                     file_name = str(j+1) + "_" + str(i) + "_"
                     write_html(browser.page_source, file_name)
                 else:
-                    browser.get(href_glob)
+                    try:
+                        browser.get(href_glob)
+                    except TimeoutException:
+                        break
                     file_name = str(j+1) + "_" + str(i) + "_"
                     write_html(browser.page_source, file_name)
-                wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))
+                try:
+                    wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))
+                except TimeoutException:
+                    p+=1
+                    if p < 10:
+                        continue
+                    else:
+                        break
                 elements = browser.find_elements_by_css_selector('#ctl00_content_paging > a')
                 c=0
                 while c < len(elements):
@@ -93,9 +109,14 @@ def daily_task():
                             c+=1
                             break
                     c+=1
-                wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))
-                soup = BeautifulSoup(browser.page_source, 'lxml')
-                list = soup.find('div', class_='content-items').find_all('div', class_='item')
+                try:
+                    wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))
+                    soup = BeautifulSoup(browser.page_source, 'lxml')
+                    list = soup.find('div', class_='content-items').find_all('div', class_='item')
+                except TimeoutException:
+                    break
+                except:
+                    break
             if i == 0:
                 soup = BeautifulSoup(browser.page_source, 'lxml')
                 list = soup.find('div', class_='content-items').find_all('div', class_='item')
@@ -108,10 +129,15 @@ def daily_task():
                 #     title = item.find('div', class_='ct_title').text.strip()
                 # else:
                 #     title = None
-                href = BASE_URL + item.find('div', class_='dvthumb').find('a').get('href')
-                browser.get(href)
-                wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="right"]/div[1]'))
-                soup = BeautifulSoup(browser.page_source, 'lxml')
+                try:
+                    href = BASE_URL + item.find('div', class_='dvthumb').find('a').get('href')
+                    browser.get(href)
+                    wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="right"]/div[1]'))
+                    soup = BeautifulSoup(browser.page_source, 'lxml')
+                except TimeoutException:
+                    continue
+                except:
+                    continue
 
                 try:
                     if soup.find('div', class_='add') != None:

@@ -47,12 +47,12 @@ def daily_task():
     chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
     browser2 = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
-    # browser2 = webdriver.Chrome()
+    # browser2 = webdriver.Chrome(chrome_options=chromeOptions)
     browser2.set_window_position(100, 40)
     browser2.set_window_size(1300, 1024)
     wait2 = ui.WebDriverWait(browser2,30)
+    # browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
-    # browser = webdriver.Chrome()
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)
     wait = ui.WebDriverWait(browser,30)
@@ -122,10 +122,15 @@ def daily_task():
                 #     title = item.find('div', class_='ct_title').text.strip()
                 # else:
                 #     title = None
-                href = BASE_URL + item.find('a').get('href')
-                browser2.get(href)
-                # wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="right"]/div[1]'))
-                soup = BeautifulSoup(browser2.page_source, 'lxml')
+                try:
+                    href = BASE_URL + item.find('a').get('href')
+                    browser2.get(href)
+                    # wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="right"]/div[1]'))
+                    soup = BeautifulSoup(browser2.page_source, 'lxml')
+                except TimeoutException:
+                    continue
+                except:
+                    continue
 
                 try:
                     if soup.find('div', class_='info-basic-hot-restaurant').find('h2', class_='kind-restaurant') != None:
@@ -204,17 +209,28 @@ def daily_task():
                 # 55555555555---food category,
                 # 55555555555---category (name of category),
                 # 55555555555---current date
-
-                products_types = soup.find('div', class_='detail-menu-kind').find_all('div', class_='scrollspy')
+                try:
+                    products_types = soup.find('div', class_='detail-menu-kind').find_all('div', class_='scrollspy')
+                except:
+                    continue
                 # print(products_types)
                 for products_type in products_types:
                     # print(products_type)
                     food_type = products_type.find('h2', class_='title-kind-food').text.strip()
                     products = products_type.find_all('div', class_='box-menu-detail')
                     for product in products:
-                        food_name = product.find('h3').text.strip()
-                        food_orders = product.find('div', class_='name-food-detail').find('p', class_='light-grey').text.strip()
-                        food_price = product.find('div', class_='product-price').find('p', class_='current-price').text.strip()
+                        try:
+                            food_name = product.find('h3').text.strip()
+                        except:
+                            continue
+                        try:
+                            food_orders = product.find('div', class_='name-food-detail').find('p', class_='light-grey').text.strip()
+                        except:
+                            continue
+                        try:
+                            food_price = product.find('div', class_='product-price').find('p', class_='current-price').text.strip()
+                        except:
+                            continue
                         try:
                             old_price = product.find('div', class_='product-price').find('p', class_='old-price').text.strip()
                         except:
