@@ -107,7 +107,11 @@ def daily_task():
             if i == 0:
                 try:
                     soup = BeautifulSoup(browser.page_source, 'lxml')
-                    list = soup.find('div', id='type_product_up').find_all('div', class_='wrapper')
+                    list = soup.find('div', id='type_product_up')
+                    if list is None:
+                        list = []
+                    else:
+                        list = list.find_all('div', class_='wrapper')
                 except:
                     i+=1
                     continue

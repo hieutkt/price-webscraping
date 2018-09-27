@@ -319,7 +319,11 @@ def daily_task():
                 continue
             soup = BeautifulSoup(browser.page_source, 'lxml')  
 
-            main_list = soup.find('div', id='imenucard').find_all('div', class_='menu-meals-group')
+            main_list = soup.find('div', id='imenucard')
+            if main_list is None:
+                main_listm = []
+            else:
+                main_list = main_list.find_all('div', class_='menu-meals-group')
             for main_el in main_list:
                 food_category = main_el.find('div', class_='menu-category-head').find('span').text.strip()
                 list = main_el.find('div', class_='category-menu-meals').find_all('div', class_='meal')
