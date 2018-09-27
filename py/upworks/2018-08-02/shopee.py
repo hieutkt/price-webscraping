@@ -87,7 +87,8 @@ def daily_task():
             # print(i+1)
             for item in list:
                 item_id = item.find('a', class_='shopee-item-card--link')
-                item_id = item_id.get('href').strip() if item_id is not None
+                if item_id is not None:
+                    item_id = item_id.get('href').strip()
                 # https://shopee.vn/%C3%81o-thun-nam-tay-d%C3%A0i-Amour-i.45223201.718824272
                 item_id = item_id.split('-i.')
                 item_id = item_id[len(item_id)-1]
