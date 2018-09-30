@@ -89,10 +89,10 @@ def daily_task():
                 item_id = item.find('a', class_='shopee-item-card--link')
                 if item_id is not None:
                     item_id = item_id.get('href').strip()
-                # https://shopee.vn/%C3%81o-thun-nam-tay-d%C3%A0i-Amour-i.45223201.718824272
-                item_id = item_id.split('-i.')
-                item_id = item_id[len(item_id)-1]
-                item_id = item_id.strip()
+                    # https://shopee.vn/%C3%81o-thun-nam-tay-d%C3%A0i-Amour-i.45223201.718824272
+                    item_id = item_id.split('-i.')
+                    item_id = item_id[len(item_id)-1]
+                    item_id = item_id.strip()
                 # item_id = item_id.split('id=')[1]
                 # Vietnamese
                 # English
