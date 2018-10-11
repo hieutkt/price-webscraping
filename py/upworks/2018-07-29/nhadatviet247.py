@@ -15,11 +15,10 @@ from selenium.common.exceptions import TimeoutException
 
 SITE_NAME = "nhadatviet247"
 BASE_URL = "http://nhadatviet247.net"
-PROJECT_PATH = os.getcwd()
-PROJECT_PATH = PROJECT_PATH.replace("\\",'/')
+PROJECT_PATH = re.sub("/py/.+", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
-CHROME_DRIVER_PATH = PROJECT_PATH + "bin/chromedriver"
+CHROME_DRIVER_PATH = PROJECT_PATH + "/bin/chromedriver"
 
 def write_csv(data):
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
@@ -53,6 +52,7 @@ def daily_task():
     urls = ['http://nhadatviet247.net/rao-vat/can-ban.html', 'http://nhadatviet247.net/rao-vat/cho-thue.html']
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         try:
             wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))

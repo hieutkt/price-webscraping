@@ -211,6 +211,7 @@ def daily_task():
     # # print(urls)
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         try:
             wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="dropdown-location"]/span/span[1]'))

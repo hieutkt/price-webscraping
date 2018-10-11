@@ -68,6 +68,7 @@ def daily_task():
     write_html(browser.page_source, "All_cat_")
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         soup = BeautifulSoup(browser.page_source, 'lxml')
 

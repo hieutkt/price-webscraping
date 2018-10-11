@@ -70,10 +70,14 @@ def daily_task():
 # cat-tree-nav
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         soup = BeautifulSoup(browser.page_source, 'lxml')
 
-        category_titles = soup.find('div', id='header_navigate_breadcrumb').find_all('a')
+        category_titles = soup.find('div', id='header_navigate_breadcrumb')
+        if category_titles is not None:
+            category_titles = category_titles.find_all('a')
+
         if len(category_titles) == 2:
             category = category_titles[1].text.strip()
             sub_category = None

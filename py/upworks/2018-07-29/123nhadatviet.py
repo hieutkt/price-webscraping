@@ -14,11 +14,10 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 SITE_NAME = "123nhadatviet"
 BASE_URL = "http://123nhadatviet.com"
-PROJECT_PATH = os.getcwd()
-PROJECT_PATH = PROJECT_PATH.replace("\\",'/')
+PROJECT_PATH = re.sub("/py/.+", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
-CHROME_DRIVER_PATH = "bin/chromedriver"
+CHROME_DRIVER_PATH = PROJECT_PATH + "/bin/chromedriver"
 
 def write_csv(data):
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
@@ -52,6 +51,7 @@ def daily_task():
     urls = ['http://123nhadatviet.com/rao-vat/can-ban/nha-dat.html', 'http://123nhadatviet.com/rao-vat/cho-thue/nha-dat.html']
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="left"]/div[2]'))
         soup = BeautifulSoup(browser.page_source, 'lxml')

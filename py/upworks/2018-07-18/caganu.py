@@ -78,6 +78,7 @@ def daily_task():
     j=0
     write_html(browser.page_source, "All_cat_")
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         category = titles[j]
 

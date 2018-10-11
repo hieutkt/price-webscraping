@@ -19,11 +19,10 @@ from selenium.webdriver.support.ui import Select
 
 SITE_NAME = "inhadat"
 BASE_URL = "http://i-nhadat.com"
-PROJECT_PATH = os.getcwd()
-PROJECT_PATH = PROJECT_PATH.replace("\\",'/')
+PROJECT_PATH = re.sub("/py/.+", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
-CHROME_DRIVER_PATH = "bin/chromedriver"
+CHROME_DRIVER_PATH = PROJECT_PATH + "/bin/chromedriver"
 
 def write_csv(data):
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
@@ -60,6 +59,7 @@ def daily_task():
     urls = ['http://i-nhadat.com/can-ban-nha-dat.htm', 'http://i-nhadat.com/cho-thue-nha-dat.htm']
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
 
         wait.until(lambda browser: browser.find_element_by_css_selector('#wrapper > div.body > div.top-link > span:nth-child(2) > a > span'))

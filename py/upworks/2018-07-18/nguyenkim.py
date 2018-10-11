@@ -22,6 +22,7 @@ PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 
 # Selenium options
 OPTIONS = Options()
+OPTIONS.add_argument('--no-sandbox') # Bypass OS security model
 OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
@@ -90,6 +91,7 @@ def daily_task():
     # print(urls)
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         soup = BeautifulSoup(browser.page_source, 'lxml')
 
