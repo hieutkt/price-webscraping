@@ -16,7 +16,6 @@ from selenium.common.exceptions import TimeoutException
 
 SITE_NAME = "careerbuilder"
 BASE_URL = "https://careerbuilder.vn"
-PROJECT_PATH = os.getcwd()
 PROJECT_PATH = re.sub("/py/.+", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"

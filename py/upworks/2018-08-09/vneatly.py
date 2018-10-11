@@ -18,7 +18,6 @@ from selenium.webdriver.support.ui import Select
 
 SITE_NAME = "vneatly"
 BASE_URL = "https://vneatly.com"
-PROJECT_PATH = os.getcwd()
 PROJECT_PATH = re.sub("/py/.+", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
