@@ -77,16 +77,20 @@ def daily_task():
         soup = BeautifulSoup(browser.page_source, 'lxml')
 
         category_titles = soup.find('ol', class_='breadcrum')
-        category_titles = category_titles.find_all('li', class_='breadcrum-item') if category_titles else None
-        if len(category_titles) == 2:
-            category = category_titles[1].find('a').text.strip()
+        if category_titles is None:
+            category = None
             sub_category = None
-        if len(category_titles) == 3:
-            category = category_titles[1].find('a').text.strip()
-            sub_category = category_titles[2].find('a').text.strip()
-        if len(category_titles) == 4:
-            category = category_titles[1].find('a').text.strip()
-            sub_category = category_titles[2].find('a').text.strip()
+        else:
+            category_titles = category_titles.find_all('li', class_='breadcrum-item')
+            if len(category_titles) == 2:
+                category = category_titles[1].find('a').text.strip()
+                sub_category = None
+            if len(category_titles) == 3:
+                category = category_titles[1].find('a').text.strip()
+                sub_category = category_titles[2].find('a').text.strip()
+            if len(category_titles) == 4:
+                category = category_titles[1].find('a').text.strip()
+                sub_category = category_titles[2].find('a').text.strip()
 
         # print(page_count)
 

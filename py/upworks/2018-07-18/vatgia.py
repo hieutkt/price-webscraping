@@ -74,18 +74,21 @@ def daily_task():
         soup = BeautifulSoup(browser.page_source, 'lxml')
 
         category_titles = soup.find('div', id='header_navigate_breadcrumb')
-        if category_titles is not None:
-            category_titles = category_titles.find_all('a')
-
-        if len(category_titles) == 2:
-            category = category_titles[1].text.strip()
+        if category_titles is None:
+            category = None
             sub_category = None
-        if len(category_titles) == 3:
-            category = category_titles[1].text.strip()
-            sub_category = category_titles[2].text.strip()
-        if len(category_titles) == 4:
-            category = category_titles[1].text.strip()
-            sub_category = category_titles[2].text.strip()
+        else:
+            category_titles = category_titles.find_all('a')
+            if len(category_titles) == 2:
+                category = category_titles[1].text.strip()
+                sub_category = None
+            if len(category_titles) == 3:
+                category = category_titles[1].text.strip()
+                sub_category = category_titles[2].text.strip()
+            if len(category_titles) == 4:
+                category = category_titles[1].text.strip()
+                sub_category = category_titles[2].text.strip()
+
 
         # print(page_count)
         try:
@@ -192,7 +195,9 @@ def compress_data():
         z.write(file)
         os.remove(file)
 
-if __name__ == '__main__':
+if "test" in sys.argv:
+    daily_task()
+else:
     schedule.every().day.at("06:00").do(daily_task)
     while True:
         schedule.run_pending()

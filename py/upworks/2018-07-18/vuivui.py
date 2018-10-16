@@ -56,42 +56,29 @@ def daily_task():
     wait = ui.WebDriverWait(browser,60)
     soup = BeautifulSoup(browser.page_source, 'lxml')
     urls = []
-    main_category_list = soup.find('div', class_='wrap').find_all('a', class_='item')
+    main_category_list = soup.find('div', class_='lmenu').find_all('div', class_='fitem')
     write_html(browser.page_source, "All_cat_")
     for main_item in main_category_list:
-        href = BASE_URL + main_item.get('href')
+        href = BASE_URL + main_item.find('a').get('href')
         browser.get(href)
         soup = BeautifulSoup(browser.page_source, 'lxml')
-        category_list = soup.find('div', class_='mnu-ct').find_all('div', class_='item')
+        category_list = soup.find('ul', class_='child').find_all('li')
         for item in category_list:
-            url_list = item.find_all('a')
-            for url in url_list:
-                hre = url.get('href')
-                if "#" in hre:
-                    continue
-                else:
-                    urls.append(BASE_URL + str(hre))
+            cat = {}
+            cat['url'] = BASE_URL + item.find('a').get('href')
+            cat['category'] = main_item.find('a').text.strip()
+            cat['sub_category'] = item.find('a').text.strip()
+            urls.append(cat)
     # print(len(urls))
     # print(urls)
     j=0
     while j < len(urls):
-        browser.get(urls[j])
+        print('Scraping', urls[j]['url'])
+        browser.get(urls[j]['url'])
         time.sleep(5)
         soup = BeautifulSoup(browser.page_source, 'lxml')
-        try:
-            category_titles = soup.find('nav', class_='bread').find_all('a', class_='item')
-            if len(category_titles) == 2:
-                category = category_titles[1].text.strip()
-                sub_category = None
-            if len(category_titles) == 3:
-                category = category_titles[1].text.strip()
-                sub_category = category_titles[2].text.strip()
-            if len(category_titles) == 4:
-                category = category_titles[1].text.strip()
-                sub_category = category_titles[2].text.strip()
-        except:
-            j+=1
-            continue
+        category = urls[j]['category']
+        sub_category = urls[j]['sub_category']
 
         # print(page_count)
 
@@ -100,7 +87,7 @@ def daily_task():
         while local_title:
             soup = BeautifulSoup(browser.page_source, 'lxml')
             if i != 0:
-                browser.get(urls[j] + "?page=" + str(i))
+                browser.get(urls[j]['url'] + "?page=" + str(i))
                 time.sleep(1)
                 wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="page-next"]'))
                 soup = BeautifulSoup(browser.page_source, 'lxml')
@@ -192,3 +179,6 @@ else:
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+# if __name__ == '__main__':
+#     daily_task()

@@ -43,8 +43,13 @@ def daily_task():
     chromeOptions = webdriver.ChromeOptions()
     prefs = {"profile.managed_default_content_settings.images":2}
     # chromeOptions.add_argument("--disable-javascript")
-    chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
+    chromeOptions.add_argument("--headless")
+    chromeOptions.add_argument("start-maximized")
+    chromeOptions.add_argument("disable-infobars")
+    chromeOptions.add_argument("--disable-extensions")
+    chromeOptions.add_argument("--no-sandbox")
+    chromeOptions.add_argument("--disable-dev-shm-usage")
     browser2 = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     # browser2 = webdriver.Chrome(chrome_options=chromeOptions)
     browser2.set_window_position(100, 40)
@@ -79,6 +84,7 @@ def daily_task():
     write_html(browser.page_source, "All_cat_")
     j=0
     while j < len(urls):
+        print('Scraping', urls[j])
         browser.get(urls[j])
         wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="list-page"]/div[2]/div[33]'))
         soup = BeautifulSoup(browser.page_source, 'lxml')
