@@ -70,12 +70,9 @@ def daily_task():
     # print(urls)
     j=0
     while j < len(urls):
-        
+        sys.stdout.write('\rScraping ' + urls[j] + '...' + ' ' * 30)
         browser.get(urls[j])
-
         category = titles[j]
-
-
         # print(page_count)
         href=''
         i=0
@@ -85,24 +82,15 @@ def daily_task():
                 try:
                     wait.until(lambda browser: browser.find_element_by_css_selector('#pagination > ul'))
                     elements = browser.find_elements_by_css_selector('#pagination > ul > li')
-                    c=0
-                    while c < len(elements):
-                        class_name = elements[c].find_element_by_css_selector('a').get_attribute("class")
-                        if "selected" in class_name:
-                            if len(elements)-1 >= c+1:
-                                href_glob = elements[c+1].find_element_by_css_selector('a').get_attribute("href")
-                                if href==href_glob:
-                                    pagination = False
-                                    break
-                                href=href_glob
-                                browser.get(href_glob)
-                                c+=1
-                                break
-                            else:
-                                pagination = False
-                                c+=1
-                                break
-                        c+=1
+                    class_name = [e.find_element_by_css_selector('a').get_attribute('class') for e in elements]
+                    page_current_index = ['selected' in a for a in class_name].index(True)
+                    page_next_index = page_current_index + 1
+                    if page_next_index < len(elements):
+                        page_next_url = elements[page_next_index].find_element_by_css_selector('a').get_attribute('href')
+                        sys.stdout.write('\rScraping ' + page_next_url + '...')
+                        browser.get(page_next_url)
+                    else:
+                        pagination = False
                 except NoSuchElementException:
                     pagination = False
                 except TimeoutException:
@@ -112,7 +100,7 @@ def daily_task():
                 try:
                     # time.sleep(5)
                     soup = BeautifulSoup(browser.page_source, 'lxml')
-                    list = soup.find('div', class_='product-list').find_all('div', class_='pu')
+                    div_list = soup.find('div', class_='product-list').find_all('div', class_='pu')
                     # list = browser.find_elements_by_css_selector('#shop > div > div > div > div')
                 except:
                     pagination = False
@@ -120,7 +108,7 @@ def daily_task():
                 try:
                     # time.sleep(5)
                     soup = BeautifulSoup(browser.page_source, 'lxml')
-                    list = soup.find('div', class_='product-list').find_all('div', class_='pu')
+                    div_list = soup.find('div', class_='product-list').find_all('div', class_='pu')
                     # list = browser.find_elements_by_css_selector('#shop > div > div > div > div')
                 except:
                     pagination = False
@@ -133,7 +121,7 @@ def daily_task():
             p=0
             file_name = str(j+1) + "_" + str(i+1) + "_"
             write_html(browser.page_source, file_name)
-            for item in list:
+            for item in div_list:
                 # try:
                 #     href = item.find_element_by_css_selector('a.db').get_attribute("href")
                 #     browser.get(href)
@@ -230,6 +218,7 @@ def daily_task():
         j+=1
     browser.quit()
     compress_data()
+    sys.stdout.write('\r' + DATE + ': Compressed, hibernating...')
 
 def compress_data():
     """Compress downloaded .csv and .html files"""
