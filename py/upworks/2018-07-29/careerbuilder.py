@@ -43,8 +43,13 @@ def daily_task():
     chromeOptions = webdriver.ChromeOptions()
     prefs = {"profile.managed_default_content_settings.images":2}
     # chromeOptions.add_argument("--disable-javascript")
-    chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
+    chromeOptions.add_argument("--headless")
+    chromeOptions.add_argument("start-maximized")
+    chromeOptions.add_argument("disable-infobars")
+    chromeOptions.add_argument("--disable-extensions")
+    chromeOptions.add_argument("--no-sandbox")
+    chromeOptions.add_argument("--disable-dev-shm-usage")
     # PROXY = "212.34.52.43:8080" # IP:PORT or HOST:PORT
     # chromeOptions.add_argument('--proxy-server=http://%s' % PROXY)
     browser2 = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
@@ -73,7 +78,7 @@ def daily_task():
     write_html(browser.page_source, "All_cat_")
     j=0
     while j < len(urls):
-        print('Scraping', urls[j])
+        sys.stdout.write('Scraping ' + urls[j] + ' ...' + ' '*10)
         browser.get(urls[j])
         soup = BeautifulSoup(browser.page_source, 'lxml')
 

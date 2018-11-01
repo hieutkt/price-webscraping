@@ -45,8 +45,13 @@ def daily_task():
     DATE = str(datetime.date.today())
     chromeOptions = webdriver.ChromeOptions()
     prefs = {"profile.managed_default_content_settings.images":2}
-    chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
+    chromeOptions.add_argument("--headless")
+    chromeOptions.add_argument("start-maximized")
+    chromeOptions.add_argument("disable-infobars")
+    chromeOptions.add_argument("--disable-extensions")
+    chromeOptions.add_argument("--no-sandbox")
+    chromeOptions.add_argument("--disable-dev-shm-usage")
     browser2 = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     # browser2 = webdriver.Chrome(chrome_options=chromeOptions)
@@ -59,7 +64,7 @@ def daily_task():
     urls = ['https://dinhgianhadat.vn/nha-dat-ban', 'https://dinhgianhadat.vn/nha-dat-cho-thue']
     j=0
     while j < len(urls):
-        print('Scraping', urls[j])
+        sys.stdout.write('Scraping ' + urls[j] + ' ...' + ' '*10)
         browser.get(urls[j])
 
         soup = BeautifulSoup(browser.page_source, 'lxml')

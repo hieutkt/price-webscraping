@@ -84,7 +84,7 @@ def daily_task():
     write_html(browser.page_source, "All_cat_")
     j=0
     while j < len(urls):
-        print('Scraping', urls[j])
+        sys.stdout.write('Scraping ' + urls[j] + ' ...' + ' '*10)
         browser.get(urls[j])
         wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="list-page"]/div[2]/div[33]'))
         soup = BeautifulSoup(browser.page_source, 'lxml')

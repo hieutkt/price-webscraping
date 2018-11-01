@@ -42,8 +42,13 @@ def daily_task():
     chromeOptions = webdriver.ChromeOptions()
     prefs = {"profile.managed_default_content_settings.images":2}
     # chromeOptions.add_argument("--disable-javascript")
-    chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
+    chromeOptions.add_argument("--headless")
+    chromeOptions.add_argument("start-maximized")
+    chromeOptions.add_argument("disable-infobars")
+    chromeOptions.add_argument("--disable-extensions")
+    chromeOptions.add_argument("--no-sandbox")
+    chromeOptions.add_argument("--disable-dev-shm-usage")
     browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     # browser = webdriver.Chrome(chrome_options=chromeOptions)
     browser.set_window_position(400, 40)
@@ -52,7 +57,7 @@ def daily_task():
     urls = ['http://nhadatviet247.net/rao-vat/can-ban.html', 'http://nhadatviet247.net/rao-vat/cho-thue.html']
     j=0
     while j < len(urls):
-        print('Scraping', urls[j])
+        sys.stdout.write('Scraping ' + urls[j] + ' ...' + ' '*10)
         browser.get(urls[j])
         try:
             wait.until(lambda browser: browser.find_element_by_xpath('//*[@id="ctl00_content_paging"]'))

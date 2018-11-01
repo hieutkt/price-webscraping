@@ -18,11 +18,14 @@ PROJECT_PATH = re.sub("/py/upworks$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 
-
 # Selenium options
 OPTIONS = Options()
-OPTIONS.add_argument('--headless')
-OPTIONS.add_argument('--disable-gpu')
+# OPTIONS.add_argument("--headless")
+OPTIONS.add_argument("start-maximized")
+OPTIONS.add_argument("disable-infobars")
+OPTIONS.add_argument("--disable-extensions")
+OPTIONS.add_argument("--no-sandbox")
+OPTIONS.add_argument("--disable-dev-shm-usage")
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
@@ -38,6 +41,8 @@ def write_csv(data):
         writer.writerow(data)
 
 def write_html(html, file_name):
+    if not os.path.exists(PATH_HTML):
+        os.makedirs(PATH_HTML)
     with open(PATH_HTML + file_name + SITE_NAME + "_" + DATE + ".html", 'a', encoding='utf-8-sig') as f:
         f.write(html)
 
@@ -53,7 +58,11 @@ def daily_task():
     wait = ui.WebDriverWait(browser,60)
     soup = BeautifulSoup(browser.page_source, 'lxml')
     urls = []
-    category_list = soup.find('div', class_='section-category-list').find('ul', class_='image-carousel__item-list').find_all('a', class_='home-category-list__category-grid')
+    try:
+        category_list = soup.find('div', class_='section-category-list').find('ul', class_='image-carousel__item-list').find_all('a', class_='home-category-list__category-grid')
+    except AttributeError:
+        browser.find_element_by_tag_name('body').click()
+        category_list = soup.find('div', class_='section-category-list').find('ul', class_='image-carousel__item-list').find_all('a', class_='home-category-list__category-grid')
     while len(category_list) < 20:
         time.sleep(1)
         soup = BeautifulSoup(browser.page_source, 'lxml')

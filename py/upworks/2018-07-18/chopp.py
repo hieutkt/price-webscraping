@@ -24,8 +24,12 @@ PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 
 # Selenium options
 OPTIONS = Options()
-OPTIONS.add_argument('--headless')
-OPTIONS.add_argument('--disable-gpu')
+OPTIONS.add_argument("--headless")
+OPTIONS.add_argument("start-maximized")
+OPTIONS.add_argument("disable-infobars")
+OPTIONS.add_argument("--disable-extensions")
+OPTIONS.add_argument("--no-sandbox")
+OPTIONS.add_argument("--disable-dev-shm-usage")
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 # prefs = {"profile.managed_default_content_settings.images":2}
 # OPTIONS.add_experimental_option("prefs",prefs)

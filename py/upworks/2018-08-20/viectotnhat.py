@@ -46,8 +46,13 @@ def daily_task():
     DATE = str(datetime.date.today())
     chromeOptions = webdriver.ChromeOptions()
     prefs = {"profile.managed_default_content_settings.images":2}
-    chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
+    chromeOptions.add_argument("--headless")
+    chromeOptions.add_argument("start-maximized")
+    chromeOptions.add_argument("disable-infobars")
+    chromeOptions.add_argument("--disable-extensions")
+    chromeOptions.add_argument("--no-sandbox")
+    chromeOptions.add_argument("--disable-dev-shm-usage")
     browser2 = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     # browser2 = webdriver.Chrome(chrome_options=chromeOptions)
@@ -68,7 +73,7 @@ def daily_task():
     j=0
     write_html(browser.page_source, "All_cat_")
     while j < len(urls):
-        print('Scraping', urls[j])
+        sys.stdout.write('\rScraping ' + urls[j] + ' ...' + ' '*10)
         browser.get(urls[j])
         try:
             wait.until(lambda browser: browser.find_element_by_css_selector('#main-content > div > div > div > div.col-xs-12.col-sm-8.col-md-8.col-lg-8.padding0.w67p.marginBottom30.marginBottom10-mb > h2 > span:nth-child(2)'))
