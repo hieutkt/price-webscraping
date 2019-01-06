@@ -12,6 +12,7 @@ ipython = "*"
 lxml = "*"
 schedule = "*"
 selenium = "*"
+coloredlogs = "*"
 
 [requires]
 python_version = "3.6"

@@ -5,6 +5,8 @@ import datetime
 import schedule
 import re
 import csv
+import random
+import coloredlogs, logging
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -16,6 +18,7 @@ BASE_URL = "https://www.lazada.vn/"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
+PATH_LOG = PROJECT_PATH + "/log/"
 
 # Selenium options
 OPTIONS = Options()
@@ -23,17 +26,43 @@ OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
+# Setting up logging
+log_format = logging.Formatter(
+    fmt='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %I:%M:%S %p')
+log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
+log_stout = logging.StreamHandler()
+log_writer.setFormatter(log_format)
+log_stout.setFormatter(log_format)
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    handlers=[log_writer, log_stout]
+)
+
+coloredlogs.install()
+
+# Defining functions
+def main():
+    try:
+        daily_task()
+    except:
+        logging.exception('Got exception on main handler')
+        raise
+    
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""
     global DATE
     global CATEGORIES_PAGES
     global BROWSER
-    # Initiate headless web browser
-    BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                               chrome_options=OPTIONS)
+    logging.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())
+    # Initiate headless web browser
+    logging.debug('Initialize browser')
+    BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                               chrome_options=OPTIONS)
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
@@ -49,6 +78,7 @@ def daily_task():
     BROWSER.close()
     # Compress data and html files
     compress_data()
+    logging.info('Scraper finished')
 
 
 def fetch_html(url, file_name, path, attempts_limit=5):
@@ -64,16 +94,16 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 html_content = element.get_attribute("innerHTML")
                 with open(path + file_name, "w") as f:
                     f.write(html_content)
-                print("Downloaded ", file_name)
+                logging.debug("Downloaded " + file_name)
                 return(True)
             except:
                 attempts += 1
-                print("Try again", file_name)
+                logging.warning("Try again" + file_name)
         else:
-            print("Cannot download", file_name)
+            logging.error("Cannot download" + file_name)
             return(False)
     else:
-        print("Already downloaded ", file_name)
+        logging.debug("Already downloaded " + file_name)
         return(True)
 
 
@@ -106,7 +136,7 @@ def scrap_data(cat):
     else:
         page_count = page_count[len(page_count) - 1]
         page_count = page_count.get('title').strip()
-    print(page_count + ' pages')
+    logging.debug('This category has ' + page_count + ' pages')
     try:
         i = 0
         while i < int(page_count):
@@ -136,7 +166,7 @@ def scrap_data(cat):
                 write_data(row)
             i += 1
     except Exception as e:
-        print("Error on" + BROWSER.current_url)
+        logging.error("Error on" + BROWSER.current_url)
         print(e)
         pass
 
@@ -157,18 +187,20 @@ def write_data(item_data):
 
 def compress_data():
     """Compress downloaded .csv and .html files"""
-    zip_csv = "cd " + PATH_CSV + "&& tar -cvzf " + SITE_NAME + "_" + \
+    zip_csv = "cd " + PATH_CSV + "&& tar -czf " + SITE_NAME + "_" + \
         DATE + ".tar.gz *" + SITE_NAME + "_" + DATE + "* --remove-files"
-    zip_html = "cd " + PATH_HTML + "&& tar -cvzf " + SITE_NAME + "_" + \
+    zip_html = "cd " + PATH_HTML + "&& tar -czf " + SITE_NAME + "_" + \
         DATE + ".tar.gz *" + DATE + ".html* --remove-files"
+    logging.info('Compressing files')
     os.system(zip_csv)
     os.system(zip_html)
 
 
 if "test" in sys.argv:
-    daily_task()
+    main()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '06:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(main)
     while True:
         schedule.run_pending()
         time.sleep(1)
