@@ -5,16 +5,51 @@ import datetime
 import schedule
 import re
 import csv
+import random
+import coloredlogs, logging
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
 
 # Parameters
-site_name = "bachhoaxanh"
-base_url = "https://www.bachhoaxanh.com/"
-project_path = re.sub("/py$", "", os.getcwd())
-path_html = project_path + "/html/" + site_name + "/"
-path_csv = project_path + "/csv/" + site_name + "/"
+SITE_NAME = "bachhoaxanh"
+BASE_URL = "https://www.bachhoaxanh.com/"
+PROJECT_PATH = re.sub("/py$", "", os.getcwd())
+PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
+PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
+PATH_LOG = PROJECT_PATH + "/log/"
+
+
+# Setting up logging
+log_format = logging.Formatter(
+    fmt='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %I:%M:%S %p'
+)
+log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
+log_stout = logging.StreamHandler()
+log_error = logging.FileHandler(PATH_LOG + 'aggregated_error/errors.log')
+
+log_writer.setFormatter(log_format)
+log_stout.setFormatter(log_format)
+log_error.setFormatter(log_format)
+log_error.setLevel("ERROR")
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    handlers=[log_writer, log_stout, log_error]
+)
+
+coloredlogs.install()
+
+
+# Defining main functions
+def main():
+    try:
+        daily_task()
+    except Exception as e:
+        logging.exception('Got exception, scraper stopped')
+        logging.info(e)
+        logging.info('Hibernating...')
 
 
 def daily_task():
@@ -22,34 +57,36 @@ def daily_task():
     # Download topsite and get categories directories
     date = str(datetime.date.today())
     base_file_name = "All_cat_" + date + ".html"
-    fetch_html(base_url, base_file_name, path_html)
-    html_file = open(path_html + base_file_name).read()
+    fetch_html(BASE_URL, base_file_name, PATH_HTML)
+    html_file = open(PATH_HTML + base_file_name).read()
     cat_link = get_category_list(html_file)
+    logging.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
     cat_name = [re.sub("/|\\?.=", "_", link) for link in cat_link]
     # Download categories pages and scrap for data
     price_data = []
     for link, name in zip(cat_link, cat_name):
         cat_file = "cat" + name + "_" + date + ".html"
-        fetch_html(base_url + link, cat_file, path_html)
-        if os.path.isfile(path_html + cat_file) is True:
+        fetch_html(BASE_URL + link, cat_file, PATH_HTML)
+        if os.path.isfile(PATH_HTML + cat_file) is True:
             price_data.append(scrap_data(name))
     price_data = [item for sublist in price_data for item in sublist]
     # Write csv
-    if not os.path.exists(path_csv):
-        os.makedirs(path_csv)
-    with open(path_csv + site_name + "_" + date + ".csv", "w") as f:
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
+    with open(PATH_CSV + SITE_NAME + "_" + date + ".csv", "w") as f:
         fieldnames = ['good_name', "id", 'price',
                       'old_price', 'category', 'date']
         writer = csv.DictWriter(f, fieldnames)
         writer.writeheader()
         writer.writerows(price_data)
     # Compress data
-    zip_csv = "cd " + path_csv + "&& tar -cvzf " + site_name + "_" + \
-        date + ".tar.gz *" + site_name + "_" + date + "* --remove-files"
-    zip_html =  "cd " + path_html + "&& tar -cvzf " + site_name + "_" + \
+    zip_csv = "cd " + PATH_CSV + "&& tar -cvzf " + SITE_NAME + "_" + \
+        date + ".tar.gz *" + SITE_NAME + "_" + date + "* --remove-files"
+    zip_html =  "cd " + PATH_HTML + "&& tar -cvzf " + SITE_NAME + "_" + \
         date + ".tar.gz *" + date + ".html* --remove-files"
     os.system(zip_csv)
     os.system(zip_html)
+    logging.info('Scraper finished, hibernating...')
 
 
 def fetch_html(url, file_name, path):
@@ -65,15 +102,15 @@ def fetch_html(url, file_name, path):
                 with open(path + file_name, "wb") as f:
                     f.write(html_content)
                     con.close
-                print("Downloaded ", file_name)
+                logging.debug("Downloaded " + file_name)
                 break
             except:
                 attempts += 1
-                print("Try again", file_name)
+                logging.warning("Try again" + file_name)
         else:
-            print("Cannot download", file_name)
+            logging.error("Cannot download" + file_name)
     else:
-        print("Already downloaded ", file_name)
+        logging.debug("Already downloaded " + file_name)
 
 
 def get_category_list(top_html):
@@ -93,7 +130,7 @@ def scrap_data(cat_name):
     Requires downloading the page first.
     """
     date = str(datetime.date.today())
-    cat_file = open(path_html + "cat" + cat_name + "_" + date + ".html").read()
+    cat_file = open(PATH_HTML + "cat" + cat_name + "_" + date + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
     cat_ul = cat_soup.findAll("ul", {"class": "cate"})
     cat_li = [ul.findAll("li", {"class": "item"}) for ul in cat_ul]
@@ -121,9 +158,10 @@ def scrap_data(cat_name):
 
 
 if "test" in sys.argv:
-    daily_task()
+    main()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '06:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(main)
     while True:
         schedule.run_pending()
         time.sleep(1)

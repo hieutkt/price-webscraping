@@ -20,36 +20,45 @@ PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 PATH_LOG = PROJECT_PATH + "/log/"
 
+
 # Selenium options
 OPTIONS = Options()
 OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
+
 # Setting up logging
 log_format = logging.Formatter(
     fmt='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %I:%M:%S %p')
+    datefmt='%Y-%m-%d %I:%M:%S %p'
+)
 log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
 log_stout = logging.StreamHandler()
+log_error = logging.FileHandler(PATH_LOG + 'aggregated_error/errors.log')
+
 log_writer.setFormatter(log_format)
 log_stout.setFormatter(log_format)
+log_error.setFormatter(log_format)
+log_error.setLevel("ERROR")
 
 logging.basicConfig(
     level=logging.DEBUG,
-    handlers=[log_writer, log_stout]
+    handlers=[log_writer, log_stout, log_error]
 )
 
 coloredlogs.install()
 
-# Defining functions
+
+# Defining main functions
 def main():
     try:
         daily_task()
-    except:
-        logging.exception('Got exception on main handler')
-        raise
-    
+    except Exception as e:
+        logging.exception('Got exception, scraper stopped')
+        logging.info(e)
+        logging.info('Hibernating...')
+
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""
@@ -68,6 +77,7 @@ def daily_task():
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
     html_file = open(PATH_HTML + base_file_name).read()
     CATEGORIES_PAGES = get_category_list(html_file)
+    logging.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
     # Read each categories pages and scrape for data
     for cat in CATEGORIES_PAGES:
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
@@ -78,7 +88,7 @@ def daily_task():
     BROWSER.close()
     # Compress data and html files
     compress_data()
-    logging.info('Scraper finished')
+    logging.info('Scraper finished, hibernating...')
 
 
 def fetch_html(url, file_name, path, attempts_limit=5):
@@ -150,7 +160,6 @@ def scrap_data(cat):
             if i == 0 or i == int(page_count) - 1:
                 soup = BeautifulSoup(BROWSER.page_source, 'lxml')
                 list = soup.find_all('div', class_='c2prKC')
-            
             for item in list:
                 row = {}
                 good_name = item.find('div', {"class": "c16H9d"})
@@ -166,7 +175,7 @@ def scrap_data(cat):
                 write_data(row)
             i += 1
     except Exception as e:
-        logging.error("Error on" + BROWSER.current_url)
+        logging.error("Error on " + BROWSER.current_url)
         print(e)
         pass
 
