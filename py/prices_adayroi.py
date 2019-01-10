@@ -18,6 +18,7 @@ PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 PATH_LOG = PROJECT_PATH + "/log/"
+DATE = str(datetime.date.today())
 
 
 # Setting up logging
@@ -49,12 +50,13 @@ def main():
     except Exception as e:
         logging.exception('Got exception, scraper stopped')
         logging.info(e)
-        logging.info('Hibernating...')
+    # Compress data and html files
+    compress_data()
+    logging.info('Hibernating...')
 
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""
-    global DATE
     global CATEGORIES_PAGES
     logging.info('Scraper started')
     # Refresh date    
@@ -72,9 +74,6 @@ def daily_task():
         if download:
             scrap_data(cat)
             find_next_page(cat)
-    # Compress data and html files
-    compress_data()
-    logging.info('Scraper finished, hibernating...')
 
 
 def fetch_html(url, file_name, path, attempts_limit=5):
@@ -183,12 +182,16 @@ def write_data(item_data):
 
 def compress_data():
     """Compress downloaded .csv and .html files"""
-    zip_csv = "cd " + PATH_CSV + "&& tar -cvzf " + SITE_NAME + "_" + \
+    zip_csv = "cd " + PATH_CSV + "&& tar -czf " + SITE_NAME + "_" + \
         DATE + ".tar.gz *" + SITE_NAME + "_" + DATE + "* --remove-files"
-    zip_html = "cd " + PATH_HTML + "&& tar -cvzf " + SITE_NAME + "_" + \
+    zip_html = "cd " + PATH_HTML + "&& tar -czf " + SITE_NAME + "_" + \
         DATE + ".tar.gz *" + DATE + ".html* --remove-files"
-    os.system(zip_csv)
-    os.system(zip_html)
+    try:
+        os.system(zip_csv)
+        os.system(zip_html)
+    except Exception as e:
+        logging.error('Error when compressing data')
+        logging.info(e)
 
 
 if "test" in sys.argv:
