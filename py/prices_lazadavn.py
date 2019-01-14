@@ -7,6 +7,7 @@ import re
 import csv
 import random
 import coloredlogs, logging
+import logging.handlers as handlers
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -36,8 +37,9 @@ log_format = logging.Formatter(
 )
 log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
 log_stout = logging.StreamHandler()
-log_error = logging.FileHandler(PATH_LOG + 'aggregated_error/errors_' +
-                                DATE + '.log')
+log_error = handlers.TimedRotatingFileHandler(PATH_LOG + 'aggregated_error/errors.log',
+    when = 'midnight', interval=1)
+log_error.suffix = '%Y-%m-%d'
 
 log_writer.setFormatter(log_format)
 log_stout.setFormatter(log_format)

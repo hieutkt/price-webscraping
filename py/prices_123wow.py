@@ -7,6 +7,7 @@ import re
 import csv
 import random
 import coloredlogs, logging
+import logging.handlers as handlers
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -27,8 +28,9 @@ log_format = logging.Formatter(
 )
 log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
 log_stout = logging.StreamHandler()
-log_error = logging.FileHandler(PATH_LOG + 'aggregated_error/errors_' +
-                                DATE + '.log')
+log_error = handlers.TimedRotatingFileHandler(PATH_LOG + 'aggregated_error/errors.log',
+    when = 'midnight', interval=1)
+log_error.suffix = '%Y-%m-%d'
 
 log_writer.setFormatter(log_format)
 log_stout.setFormatter(log_format)
@@ -59,7 +61,7 @@ def daily_task():
     """Main workhorse function. Support functions defined below"""
     global CATEGORIES_PAGES
     logging.info('Scraper started')
-    # Refresh date    
+    # Refresh date
     DATE = str(datetime.date.today())
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
