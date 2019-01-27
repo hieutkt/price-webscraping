@@ -5,16 +5,57 @@ import datetime
 import schedule
 import re
 import csv
+import random
+import coloredlogs, logging
+import logging.handlers as handlers
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
 
 # Parameters
-site_name = "sendo"
-base_url = "https://www.sendo.vn/"
-project_path = re.sub("/py$", "", os.getcwd())
-path_html = project_path + "/html/" + site_name + "/"
-path_csv = project_path + "/csv/" + site_name + "/"
+SITE_NAME = "sendo"
+BASE_URL = "https://www.sendo.vn/"
+PROJECT_PATH = re.sub("/py$", "", os.getcwd())
+PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
+PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
+PATH_LOG = PROJECT_PATH + "/log/"
+DATE = str(datetime.date.today())
+
+
+# Setting up logging
+log_format = logging.Formatter(
+    fmt='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %I:%M:%S %p'
+)
+log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
+log_stout = logging.StreamHandler()
+log_error = handlers.TimedRotatingFileHandler(PATH_LOG + 'aggregated_error/errors.log',
+    when = 'midnight', interval=1)
+log_error.suffix = '%Y-%m-%d'
+
+log_writer.setFormatter(log_format)
+log_stout.setFormatter(log_format)
+log_error.setFormatter(log_format)
+log_error.setLevel("ERROR")
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    handlers=[log_writer, log_stout, log_error]
+)
+
+coloredlogs.install()
+
+
+# Defining main functions
+def main():
+    try:
+        daily_task()
+    except Exception as e:
+        logging.exception('Got exception, scraper stopped')
+        logging.info(e)
+    # Compress data and html files
+    compress_data()
+    logging.info('Hibernating...')
 
 
 def daily_task():

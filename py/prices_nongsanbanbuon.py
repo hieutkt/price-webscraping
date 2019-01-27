@@ -5,6 +5,9 @@ import datetime
 import schedule
 import re
 import csv
+import random
+import coloredlogs, logging
+import logging.handlers as handlers
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -15,18 +18,58 @@ BASE_URL = "http://nongsanbanbuon.com"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
+PATH_LOG = PROJECT_PATH + "/log/"
+DATE = str(datetime.date.today())
+
+
+# Setting up logging
+log_format = logging.Formatter(
+    fmt='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %I:%M:%S %p'
+)
+log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
+log_stout = logging.StreamHandler()
+log_error = handlers.TimedRotatingFileHandler(PATH_LOG + 'aggregated_error/errors.log',
+    when = 'midnight', interval=1)
+log_error.suffix = '%Y-%m-%d'
+
+log_writer.setFormatter(log_format)
+log_stout.setFormatter(log_format)
+log_error.setFormatter(log_format)
+log_error.setLevel("ERROR")
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    handlers=[log_writer, log_stout, log_error]
+)
+
+coloredlogs.install()
+
+
+# Defining main functions
+def main():
+    try:
+        daily_task()
+    except Exception as e:
+        logging.exception('Got exception, scraper stopped')
+        logging.info(e)
+    # Compress data and html files
+    compress_data()
+    logging.info('Hibernating...')
 
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""
-    global DATE
     global CATEGORIES_PAGES
+    logging.info('Scraper started')
+    # Refresh date
     DATE = str(datetime.date.today())
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
     html_file = open(PATH_HTML + base_file_name).read()
     CATEGORIES_PAGES = get_category_list(html_file)
+    logging.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
     # Read each categories pages and scrape for data
     for cat in CATEGORIES_PAGES:
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
@@ -34,8 +77,6 @@ def daily_task():
         if download:
             scrap_data(cat)
             find_next_page(cat)
-    # Compress data and html files
-    compress_data()
 
 
 def fetch_html(url, file_name, path, attempts_limit=5):
@@ -51,16 +92,16 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 with open(path + file_name, "wb") as f:
                     f.write(html_content)
                     con.close
-                print("Downloaded ", file_name)
+                logging.debug("Downloaded " + file_name)
                 return(True)
             except:
                 attempts += 1
-                print("Try again", file_name)
+                logging.warning("Try again" + file_name)
         else:
-            print("Cannot download", file_name)
+            logging.error("Cannot download" + file_name)
             return(False)
     else:
-        print("Already downloaded ", file_name)
+        logging.debug("Already downloaded " + file_name)
         return(True)
 
 
@@ -135,7 +176,7 @@ def find_next_page(cat):
 
 def write_data(item_data):
     """Write an item data as a row in csv. Create new file if needed"""
-    fieldnames = ['good_name', 'price', 'location', 'id', 'date_posted', 
+    fieldnames = ['good_name', 'price', 'old_price', 'id',
                   'category', 'category_label', 'date']
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
     if not os.path.exists(PATH_CSV):
@@ -149,18 +190,24 @@ def write_data(item_data):
 
 def compress_data():
     """Compress downloaded .csv and .html files"""
-    zip_csv = "cd " + PATH_CSV + "&& tar -cvzf " + SITE_NAME + "_" + \
+    zip_csv = "cd " + PATH_CSV + "&& tar -czf " + SITE_NAME + "_" + \
         DATE + ".tar.gz *" + SITE_NAME + "_" + DATE + "* --remove-files"
-    zip_html = "cd " + PATH_HTML + "&& tar -cvzf " + SITE_NAME + "_" + \
+    zip_html = "cd " + PATH_HTML + "&& tar -czf " + SITE_NAME + "_" + \
         DATE + ".tar.gz *" + DATE + ".html* --remove-files"
-    os.system(zip_csv)
-    os.system(zip_html)
+    logging.info('Compressing files')
+    try:
+        os.system(zip_csv)
+        os.system(zip_html)
+    except Exception as e:
+        logging.error('Error when compressing data')
+        logging.info(e)
 
 
 if "test" in sys.argv:
-    daily_task()
+    main()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '06:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(main)
     while True:
         schedule.run_pending()
         time.sleep(1)

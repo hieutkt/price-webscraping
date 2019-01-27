@@ -151,7 +151,6 @@ def scrap_data(cat):
         row['category'] = cat['name']
         row['category_label'] = cat['label']
         row['date'] = DATE
-        print(row)
         write_data(row)
 
 
