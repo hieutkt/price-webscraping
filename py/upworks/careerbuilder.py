@@ -8,6 +8,7 @@ import glob, os
 import re
 import schedule
 import zipfile
+import random
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
@@ -214,7 +215,7 @@ def daily_task():
                 else:
                     continue
 
-                # 555555555555---Salary, 
+                # 555555555555---Salary,
                 # 555555555555---Work location, (shown as “Work location”)
                 # 555555555555---Job level, (shown as “Job level”)
                 # 555555555555---Industry, (shown as “Industry”)
@@ -229,7 +230,7 @@ def daily_task():
                 # 555555555555555555555---name of category
                 # 55555555555555555---current date
 
-                
+
                 data = {'category': category,
                         'Salary': Salary,
                         'Work_location': Work_location,
@@ -268,7 +269,8 @@ def compress_data():
 if "test" in sys.argv:
     daily_task()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(daily_task)
     while True:
         schedule.run_pending()
         time.sleep(1)

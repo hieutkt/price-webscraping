@@ -8,6 +8,7 @@ import glob, os
 import re
 import schedule
 import zipfile
+import random
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
@@ -128,8 +129,8 @@ def daily_task():
             # print(i+1)
             for item in list:
                 # ---good_name (name of product in Vietnamese),
-                # ---price, 
-                # ---old_price (previous price if exists), 
+                # ---price,
+                # ---old_price (previous price if exists),
                 # ---id (product_id by seller - could be created from the link),
                 # ---category (name of category),
                 # ---date (current date)
@@ -158,7 +159,7 @@ def daily_task():
                     # old_price = old_price.strip()
                 except:
                     old_price = None
-                
+
                 data = {'category': category,
                         'good_name': good_name,
                         'id_': id_,
@@ -189,7 +190,8 @@ def compress_data():
 if "test" in sys.argv:
     daily_task()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(daily_task)
     while True:
         schedule.run_pending()
         time.sleep(1)

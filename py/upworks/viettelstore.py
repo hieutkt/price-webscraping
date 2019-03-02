@@ -7,9 +7,10 @@ import sys
 import glob, os
 import re
 import schedule
+import random
+import zipfile
 from selenium.common.exceptions import NoSuchElementException
 import selenium.webdriver.support.ui as ui
-import zipfile
 from selenium.webdriver.chrome.options import Options
 
 
@@ -153,7 +154,7 @@ def daily_task():
                     # old_price = old_price.strip()
                 except:
                     old_price = None
-                
+
                 date = DATE
 
                 data = {'category': category,
@@ -208,7 +209,7 @@ def daily_task():
                     # old_price = old_price.strip()
                 else:
                     old_price = None
-                
+
                 date = DATE
 
                 data = {'category': category,
@@ -242,7 +243,8 @@ def compress_data():
 if "test" in sys.argv:
     daily_task()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(daily_task)
     while True:
         schedule.run_pending()
         time.sleep(1)

@@ -200,7 +200,7 @@ def compress_data():
 if "test" in sys.argv:
     main()
 else:
-    start_time = '06:' + str(random.randint(0,59)).zfill(2)
+    start_time = '01:' + str(random.randint(0,59)).zfill(2)
     schedule.every().day.at(start_time).do(main)
     while True:
         schedule.run_pending()

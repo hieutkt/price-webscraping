@@ -8,6 +8,7 @@ import glob, os
 import re
 import schedule
 import zipfile
+import random
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -227,7 +228,7 @@ def daily_task():
                     Experience = None
                     Education = None
 
-                
+
                 data = {'category': category,
                         'Salary': Salary,
                         'Work_location': Work_location,
@@ -265,7 +266,8 @@ def compress_data():
 if "test" in sys.argv:
     daily_task()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(daily_task)
     while True:
         schedule.run_pending()
         time.sleep(1)

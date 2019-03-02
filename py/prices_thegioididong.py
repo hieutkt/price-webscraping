@@ -5,6 +5,7 @@ import datetime
 import schedule
 import re
 import csv
+import random
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -38,7 +39,7 @@ def daily_task():
     if not os.path.exists(path_csv):
         os.makedirs(path_csv)
     with open(path_csv + site_name + "_" + date + ".csv", "w") as f:
-        fieldnames = ['good_name', "id", 'price', 'old_price', 
+        fieldnames = ['good_name', "id", 'price', 'old_price',
                       'category', 'date']
         writer = csv.DictWriter(f, fieldnames)
         writer.writeheader()
@@ -121,7 +122,8 @@ def scrap_data(cat_name):
 if "test" in sys.argv:
     daily_task()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(daily_task)
     while True:
         schedule.run_pending()
         time.sleep(1)

@@ -8,6 +8,7 @@ import glob, os
 import re
 import schedule
 import zipfile
+import random
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
@@ -123,12 +124,12 @@ def daily_task():
                         browser2.get(href)
                     except TimeoutException:
                         continue
-                
+
                 soup = BeautifulSoup(browser2.page_source, 'lxml')
-                
+
 
                 # ---111111111111111111111111111111price, (shown as "Giá”)
-                # ---old_price (previous price if exists), 
+                # ---old_price (previous price if exists),
                 # ---1111111111111111111111111111location, (shown as "Địa chỉ của bất động sản")
                 # ---1111111111111111111111111111floor area, (shown as "Diện tích")
                 # ---1111111111111111111111111111legal right, (shown as "Pháp lý")
@@ -219,7 +220,8 @@ def compress_data():
 if "test" in sys.argv:
     daily_task()
 else:
-    schedule.every().day.at("06:00").do(daily_task)
+    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    schedule.every().day.at(start_time).do(daily_task)
     while True:
         schedule.run_pending()
         time.sleep(1)
