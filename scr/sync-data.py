@@ -13,7 +13,7 @@ def sync_data():
 if "test" in sys.argv:
     sync_data()
 else:
-    schedule.every().day.at("23:00").do(sync_data)
+    schedule.every().day.at("20:00").do(sync_data)
     while True:
         schedule.run_pending()
         time.sleep(1)
