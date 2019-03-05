@@ -10,6 +10,7 @@ import schedule
 import random
 import zipfile
 from selenium.webdriver.chrome.options import Options
+import signal
 
 
 SITE_NAME = "meta"
@@ -163,6 +164,9 @@ def daily_task():
             local_title = local_title.strip()
             i+=1
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
 

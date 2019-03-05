@@ -15,7 +15,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.support.ui import Select
-
+import signal
 
 
 SITE_NAME = "123nhadat"
@@ -200,7 +200,13 @@ def daily_task():
             i+=1
         # print(j)
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
+    # Close browser2
+    browser2.close()
+    browser2.service.process.send_signal(signal.SIGTERM)
     browser2.quit()
     compress_data()
 

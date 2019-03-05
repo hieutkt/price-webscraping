@@ -11,6 +11,7 @@ import logging.handlers as handlers
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import signal
 
 
 # Parameters
@@ -71,6 +72,7 @@ def daily_task():
     global CATEGORIES_PAGES
     global BROWSER
     global DATE
+
     logging.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())
@@ -92,6 +94,8 @@ def daily_task():
             scrap_data(cat)
     # Close browser
     BROWSER.close()
+    BROWSER.service.process.send_signal(signal.SIGTERM)
+    BROWSER.quit()
 
 
 def fetch_html(url, file_name, path, browser):

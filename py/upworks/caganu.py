@@ -14,6 +14,8 @@ import selenium.webdriver.support.ui as ui
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
+import signal
+
 
 SITE_NAME = "caganu"
 BASE_URL = "https://caganu.com"
@@ -165,6 +167,9 @@ def daily_task():
             write_html(browser.page_source, file_name)
             i+=1
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
 

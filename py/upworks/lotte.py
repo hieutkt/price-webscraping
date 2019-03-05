@@ -15,7 +15,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.support.ui import Select
-
+import signal
 
 
 SITE_NAME = "lotte"
@@ -202,6 +202,9 @@ def daily_task():
             soup = BeautifulSoup(browser.page_source, 'lxml')
             i+=1
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
 

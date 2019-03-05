@@ -15,7 +15,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.support.ui import Select
-
+import signal
 
 
 SITE_NAME = "iprice"
@@ -222,6 +222,9 @@ def daily_task():
             i+=1
             # print(len(list)-p)
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
     sys.stdout.write('\r' + DATE + ': Compressed, hibernating...')

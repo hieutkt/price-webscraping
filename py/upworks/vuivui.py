@@ -11,6 +11,7 @@ import random
 import zipfile
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.chrome.options import Options
+import signal
 
 
 SITE_NAME = "vuivui"
@@ -160,6 +161,9 @@ def daily_task():
                 break
             i+=1
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
 

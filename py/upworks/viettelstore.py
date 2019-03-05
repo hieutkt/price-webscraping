@@ -12,6 +12,7 @@ import zipfile
 from selenium.common.exceptions import NoSuchElementException
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.chrome.options import Options
+import signal
 
 
 SITE_NAME = "viettelstore"
@@ -223,6 +224,9 @@ def daily_task():
             file_name = str(j+1) + "_"
             write_html(browser.page_source, file_name)
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
 

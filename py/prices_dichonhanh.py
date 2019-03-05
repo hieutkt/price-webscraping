@@ -11,6 +11,7 @@ import logging.handlers as handlers
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import signal
 
 
 # Parameters
@@ -94,6 +95,8 @@ def daily_task():
             find_next_page(cat)
     # Close browser
     BROWSER.close()
+    BROWSER.service.process.send_signal(signal.SIGTERM)
+    BROWSER.quit()
 
 
 def fetch_html(url, file_name, path):

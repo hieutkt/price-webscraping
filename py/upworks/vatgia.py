@@ -10,6 +10,8 @@ import schedule
 import random
 import zipfile
 from selenium.webdriver.common.action_chains import ActionChains
+import signal
+
 
 SITE_NAME = "vatgia"
 BASE_URL = "https://www.vatgia.com"
@@ -180,6 +182,9 @@ def daily_task():
             write_html(browser.page_source, file_name)
             i+=1
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
 

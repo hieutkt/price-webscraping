@@ -15,6 +15,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 # from selenium.webdriver.support import expected_conditions as EC
 import zipfile
 from selenium.webdriver.chrome.options import Options
+import signal
 
 
 SITE_NAME = "chopp"
@@ -194,6 +195,9 @@ def daily_task():
             soup = BeautifulSoup(browser.page_source, 'lxml')
             i+=1
         j+=1
+    # Close browser
+    browser.close()
+    browser.service.process.send_signal(signal.SIGTERM)
     browser.quit()
     compress_data()
 
