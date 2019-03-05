@@ -70,6 +70,7 @@ def daily_task():
     """Main workhorse function. Support functions defined below"""
     global CATEGORIES_PAGES
     global BROWSER
+    global DATE
     logging.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())

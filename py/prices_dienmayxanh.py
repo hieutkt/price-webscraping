@@ -62,6 +62,7 @@ def daily_task():
     """Main workhorse function. Support functions defined below"""
     # Download topsite and get categories directories
     global CATEGORIES_PAGES
+    global DATE
     logging.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())
