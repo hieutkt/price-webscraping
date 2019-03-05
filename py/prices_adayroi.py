@@ -31,7 +31,7 @@ log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
 log_stout = logging.StreamHandler()
 log_error = handlers.TimedRotatingFileHandler(PATH_LOG + 'aggregated_error/errors.log',
     when = 'midnight', interval=1)
-log_error.suffix = '%Y-%m-%d'
+log_error.suffix = '%Y-%m-%d_' + SITE_NAME
 
 log_writer.setFormatter(log_format)
 log_stout.setFormatter(log_format)
