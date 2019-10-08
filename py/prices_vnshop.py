@@ -51,6 +51,19 @@ logging.basicConfig(
 coloredlogs.install()
 
 
+# Defining main functions
+def main():
+    try:
+        daily_task()
+    except Exception as e:
+        logging.exception('Got exception, scraper stopped')
+        logging.info(e)
+    # Compress data and html files
+    compress_csv()
+    compress_html()
+    logging.info('Hibernating...')
+
+
 def daily_task():
     """Main workhorse function. Support functions defined below"""
     global DATE
