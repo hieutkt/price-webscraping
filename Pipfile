@@ -13,6 +13,7 @@ lxml = "*"
 schedule = "*"
 selenium = "*"
 coloredlogs = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.6"
