@@ -7,6 +7,8 @@ import schedule
 import re
 import csv
 import random
+import coloredlogs, logging
+import logging.handlers as handlers
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
