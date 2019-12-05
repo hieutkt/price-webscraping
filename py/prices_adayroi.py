@@ -151,16 +151,16 @@ def get_category_list(top_html):
         hover.perform()
         time.sleep(1)
         while True:
-            cat2s = cat1.find_elements_by_css_selector('.sub-categories-item')
+            cat2s = cat1.find_elements_by_css_selector('.sub-category__item')
             if len(cat2s) > 0:
                 break
             else:
-                cat2s = cat1.find_elements_by_css_selector('.sub-categories-item')
+                cat2s = cat1.find_elements_by_css_selector('sub-category__item')
                 time.sleep(1)
                 continue
         for cat2 in cat2s:
-            cat2_text = cat2.find_element_by_css_selector('h3').text.strip()
-            cat3s = cat2.find_elements_by_css_selector("li")
+            cat2_text = cat2.find_element_by_css_selector('a.h13-bo-20').text.strip()
+            cat3s = cat2.find_elements_by_css_selector(".mt-3")
             if len(cat3s) > 0:
                 for cat3 in cat3s:
                     tag['text'] = cat1_text + ">" + cat2_text + ">" + cat3.text.strip()
@@ -168,7 +168,7 @@ def get_category_list(top_html):
                     categories_tag.append(tag.copy())
             else:
                 tag['text'] = cat1_text + ">" + cat2_text
-                tag['href'] = cat2.find_element_by_css_selector('h3 a').get_attribute('href')
+                tag['href'] = cat2.find_element_by_css_selector('a.h13-bo-20').get_attribute('href')
                 categories_tag.append(tag.copy())
     for cat in categories_tag:
         page = {}
