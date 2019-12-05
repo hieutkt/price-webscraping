@@ -143,7 +143,7 @@ def get_category_list(top_html):
     page_list = []
     tag = dict()
     categories_tag = []
-    cat1s = BROWSER.find_elements_by_css_selector("div.menu-top div.menu__cat-wrap > * > li")
+    cat1s = BROWSER.find_elements_by_css_selector("ul.menu__cat:nth-child(1) > li")
     for cat1 in cat1s:
         cat1_text = cat1.text.strip()
         # print(cat1_text)
