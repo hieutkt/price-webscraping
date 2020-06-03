@@ -1,0 +1,59 @@
+session_name: price-webscraping-upwork
+start_directory: ./
+before_script: pipenv install --dev --skip-lock
+shell_command_before:
+- '[ -d `pipenv --venv` ] && source `pipenv --venv`/bin/activate && reset'
+- 'cd $(git rev-parse --show-toplevel)'
+- window_name: upwork
+  layout: tiled
+  panes:
+    - python ./py/upworks/123nhadat.py
+    - python ./py/upworks/123nhadatviet.py
+    - python ./py/upworks/bhfood.py
+    - python ./py/upworks/billmart.py
+    - python ./py/upworks/caganu.py
+    - python ./py/upworks/careerbuilder.py
+    - python ./py/upworks/careerlink.py
+    - python ./py/upworks/chonmon.py
+    - python ./py/upworks/chopp.py
+- window_name: upwork
+  layout: tiled
+  panes:
+    - python ./py/upworks/csfood.py
+    - python ./py/upworks/dichoonline.py
+    - python ./py/upworks/didongthongminh.py
+    - python ./py/upworks/dinhgianhadat.py
+    - python ./py/upworks/eat.py
+    - python ./py/upworks/hasaki.py
+    - python ./py/upworks/inhadat.py
+    - python ./py/upworks/iprice.py
+    - python ./py/upworks/laodong.py
+- window_name: upwork
+  layout: tiled
+  panes:
+    - python ./py/upworks/loship.py
+    - python ./py/upworks/lotte.py
+    - python ./py/upworks/lozi.py
+    - python ./py/upworks/meta.py
+    - python ./py/upworks/muamuaonline.py
+    - python ./py/upworks/mywork.py
+    - python ./py/upworks/nguyenkim.py
+    - python ./py/upworks/nhadatviet247.py
+    - python ./py/upworks/nhatot.py
+- window_name: upwork
+  layout: tiled
+  panes:
+    - python ./py/upworks/now.py
+    - python ./py/upworks/shopee.py
+    - python ./py/upworks/suma.py
+    - python ./py/upworks/vatgia.py
+    - python ./py/upworks/vgsshop.py
+    - python ./py/upworks/viectotnhat.py
+    - python ./py/upworks/vietnammm.py
+    - python ./py/upworks/viettelstore.py
+    - python ./py/upworks/vneatly.py
+- window_name: upwork
+  layout: tiled
+  panes:
+    - python ./py/upworks/vuivui.py
+    - python ./py/upworks/yes24.py
