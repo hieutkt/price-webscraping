@@ -1,5 +1,6 @@
 import sys
-import os, glob
+import os
+import glob
 from zipfile import ZipFile
 import time
 import datetime
@@ -7,7 +8,8 @@ import schedule
 import re
 import csv
 import random
-import coloredlogs, logging
+import coloredlogs
+import logging
 import logging.handlers as handlers
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -45,8 +47,9 @@ log_format = logging.Formatter(
 )
 log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
 log_stout = logging.StreamHandler()
-log_error = handlers.TimedRotatingFileHandler(PATH_LOG + 'aggregated_error/errors.log',
-    when = 'midnight', interval=1)
+log_error = handlers.TimedRotatingFileHandler(
+    PATH_LOG + 'aggregated_error/errors.log',
+    when='midnight', interval=1)
 log_error.suffix = '%Y-%m-%d_' + SITE_NAME
 
 log_writer.setFormatter(log_format)
@@ -72,7 +75,7 @@ def main():
         BROWSER.service.process.send_signal(signal.SIGTERM)
         BROWSER.quit()
         logging.exception('Got exception, scraper stopped')
-        logging.info(e)
+        logging.info(type(e).__name__ + e)
     # Compress data and html files
     compress_csv()
     compress_html()
@@ -127,9 +130,10 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                     f.write(html_content)
                 logging.debug("Downloaded " + file_name)
                 return(True)
-            except:
-                attempts += 1
+            except Exception as e:
+                logging.info(type(e).__name__ + e)
                 logging.warning("Try again" + file_name)
+                attempts += 1
         else:
             logging.error("Cannot download" + file_name)
             return(False)
@@ -143,7 +147,8 @@ def get_category_list(top_html):
     page_list = []
     tag = dict()
     categories_tag = []
-    cat1s = BROWSER.find_elements_by_css_selector("ul.menu__cat:nth-child(1) > li")
+    cat1s = BROWSER\
+        .find_elements_by_css_selector("ul.menu__cat:nth-child(1) > li")
     for cat1 in cat1s:
         cat1_text = cat1.text.strip()
         # print(cat1_text)
@@ -155,24 +160,30 @@ def get_category_list(top_html):
             if len(cat2s) > 0:
                 break
             else:
-                cat2s = cat1.find_elements_by_css_selector('sub-category__item')
+                cat2s = cat1\
+                    .find_elements_by_css_selector('sub-category__item')
                 time.sleep(1)
                 continue
         for cat2 in cat2s:
-            cat2_text = cat2.find_element_by_css_selector('a.h13-bo-20').text.strip()
+            cat2_text = cat2.find_element_by_css_selector('a.h13-bo-20')\
+                            .text\
+                            .strip()
             cat3s = cat2.find_elements_by_css_selector(".mt-3")
             if len(cat3s) > 0:
                 for cat3 in cat3s:
-                    tag['text'] = cat1_text + ">" + cat2_text + ">" + cat3.text.strip()
-                    tag['href'] = cat3.find_element_by_css_selector('a').get_attribute('href')
+                    cat3_text = cat3.text.strip()
+                    tag['text'] = cat1_text + ">" + cat2_text + ">" + cat3_text
+                    tag['href'] = cat3.find_element_by_css_selector('a')\
+                                      .get_attribute('href')
                     categories_tag.append(tag.copy())
             else:
                 tag['text'] = cat1_text + ">" + cat2_text
-                tag['href'] = cat2.find_element_by_css_selector('a.h13-bo-20').get_attribute('href')
+                tag['href'] = cat2.find_element_by_css_selector('a.h13-bo-20')\
+                                  .get_attribute('href')
                 categories_tag.append(tag.copy())
     for cat in categories_tag:
         page = {}
-        link = re.sub(".+adayroi\.com/", "", cat['href'])
+        link = re.sub(".+adayroi\\.com/", "", cat['href'])
         page['relativelink'] = link
         page['directlink'] = BASE_URL + link
         page['name'] = re.sub("/|\\?.=", "_", link)
@@ -219,7 +230,7 @@ def find_next_page(cat):
     cat_soup = BeautifulSoup(cat_file, "lxml")
     next_button = cat_soup.find("a", {"class": "btn", "rel": "next"})
     if next_button:
-        link = re.sub(".+adayroi\.com", "", next_button['href'])
+        link = re.sub(".+adayroi\\.com", "", next_button['href'])
         if link not in [i['relativelink'] for i in CATEGORIES_PAGES]:
             next_page = cat.copy()
             next_page['relativelink'] = link
@@ -248,14 +259,14 @@ def compress_csv():
         os.makedirs(PATH_CSV)
     os.chdir(PATH_CSV)
     try:
-        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_csv.zip', 'a') #
+        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_csv.zip', 'a')
         for file in glob.glob("*" + DATE + "*" + "csv"):
             zip_csv.write(file)
             os.remove(file)
         logging.info("Compressing " + str(OBSERVATION) + " item(s)")
     except Exception as e:
         logging.error('Error when compressing csv')
-        logging.info(e)
+        logging.info(type(e).__name__ + e)
     os.chdir(PROJECT_PATH)
 
 
@@ -265,14 +276,14 @@ def compress_html():
         os.makedirs(PATH_HTML)
     os.chdir(PATH_HTML)
     try:
-        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_html.zip', 'a') #
+        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_html.zip', 'a')
         for file in glob.glob("*" + DATE + "*" + "html"):
             zip_csv.write(file)
             os.remove(file)
         logging.info("Compressing HTML files")
     except Exception as e:
         logging.error('Error when compressing html')
-        logging.info(e)
+        logging.info(type(e).__name__ + e)
     os.chdir(PROJECT_PATH)
 
 
@@ -282,7 +293,7 @@ if "test" in sys.argv:
 else:
     if "run" in sys.argv:
         main()
-    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    start_time = '01:' + str(random.randint(0, 59)).zfill(2)
     schedule.every().day.at(start_time).do(main)
     while True:
         schedule.run_pending()
