@@ -1,5 +1,6 @@
 import sys
-import os, glob
+import os
+import glob
 from zipfile import ZipFile
 import time
 import datetime
@@ -7,7 +8,8 @@ import schedule
 import re
 import csv
 import random
-import coloredlogs, logging
+import coloredlogs
+import logging
 import logging.handlers as handlers
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -43,8 +45,9 @@ log_format = logging.Formatter(
 )
 log_writer = logging.FileHandler(PATH_LOG + SITE_NAME + '.log')
 log_stout = logging.StreamHandler()
-log_error = handlers.TimedRotatingFileHandler(PATH_LOG + 'aggregated_error/errors.log',
-    when = 'midnight', interval=1)
+log_error = handlers.TimedRotatingFileHandler(
+    PATH_LOG + 'aggregated_error/errors.log',
+    when='midnight', interval=1)
 log_error.suffix = '%Y-%m-%d_' + SITE_NAME
 
 log_writer.setFormatter(log_format)
@@ -140,7 +143,7 @@ def get_category_list(top_html):
     categories_tag = [item for sublist in categories_tag for item in sublist]
     for cat in categories_tag:
         next_page = {}
-        link = re.sub(".+lazada\.vn", "", cat['href'])
+        link = re.sub(".+lazadai\\.vn", "", cat['href'])
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
         next_page['name'] = re.sub("/|\\?.=", "_", link)
@@ -216,7 +219,7 @@ def compress_csv():
         os.makedirs(PATH_CSV)
     os.chdir(PATH_CSV)
     try:
-        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_csv.zip', 'a') #
+        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_csv.zip', 'a')
         for file in glob.glob("*" + DATE + "*" + "csv"):
             zip_csv.write(file)
             os.remove(file)
@@ -233,7 +236,7 @@ def compress_html():
         os.makedirs(PATH_HTML)
     os.chdir(PATH_HTML)
     try:
-        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_html.zip', 'a') #
+        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_html.zip', 'a')
         for file in glob.glob("*" + DATE + "*" + "html"):
             zip_csv.write(file)
             os.remove(file)
@@ -250,7 +253,7 @@ if "test" in sys.argv:
 else:
     if "run" in sys.argv:
         main()
-    start_time = '01:' + str(random.randint(0,59)).zfill(2)
+    start_time = '01:' + str(random.randint(0, 59)).zfill(2)
     schedule.every().day.at(start_time).do(main)
     while True:
         schedule.run_pending()
