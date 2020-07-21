@@ -52,7 +52,7 @@ def main():
         daily_task()
     except Exception as e:
         logging.exception('Got exception, scraper stopped')
-        logging.info(e)
+        logging.info(type(e).__name__ + str(e))
     # Compress data and html files
     compress_data()
     logging.info('Hibernating...')
@@ -196,7 +196,7 @@ def compress_data():
         os.system(zip_html)
     except Exception as e:
         logging.error('Error when compressing data')
-        logging.info(e)
+        logging.info(type(e).__name__ + str(e))
 
 
 if "test" in sys.argv:

@@ -75,7 +75,7 @@ def main():
         BROWSER.service.process.send_signal(signal.SIGTERM)
         BROWSER.quit()
         logging.exception('Got exception, scraper stopped')
-        logging.info(type(e).__name__ + e)
+        logging.info(type(e).__name__ + str(e))
     # Compress data and html files
     compress_csv()
     compress_html()
@@ -131,7 +131,7 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 logging.debug("Downloaded " + file_name)
                 return(True)
             except Exception as e:
-                logging.info(type(e).__name__ + e)
+                logging.info(type(e).__name__ + str(e))
                 logging.warning("Try again" + file_name)
                 attempts += 1
         else:
@@ -266,7 +266,7 @@ def compress_csv():
         logging.info("Compressing " + str(OBSERVATION) + " item(s)")
     except Exception as e:
         logging.error('Error when compressing csv')
-        logging.info(type(e).__name__ + e)
+        logging.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 
@@ -283,7 +283,7 @@ def compress_html():
         logging.info("Compressing HTML files")
     except Exception as e:
         logging.error('Error when compressing html')
-        logging.info(type(e).__name__ + e)
+        logging.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 

@@ -57,7 +57,7 @@ def main():
         daily_task()
     except Exception as e:
         logging.exception('Got exception, scraper stopped')
-        logging.info(e)
+        logging.info(type(e).__name__ + str(e))
     # Compress data and html files
     compress_csv()
     compress_html()
@@ -205,7 +205,7 @@ def compress_csv():
         logging.info("Compressing " + str(OBSERVATION) + " item(s)")
     except Exception as e:
         logging.error('Error when compressing csv')
-        logging.info(e)
+        logging.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 
@@ -222,7 +222,7 @@ def compress_html():
         logging.info("Compressing HTML files")
     except Exception as e:
         logging.error('Error when compressing html')
-        logging.info(e)
+        logging.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 
