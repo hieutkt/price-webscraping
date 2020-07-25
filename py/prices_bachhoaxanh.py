@@ -130,17 +130,17 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 html_content = element.get_attribute("innerHTML")
                 with open(path + file_name, "w") as f:
                     f.write(html_content)
-                logging.debug("Downloaded " + file_name)
+                logging.debug("Downloaded: %s", file_name)
                 return(True)
             except Exception as e:
                 attempts += 1
                 logging.info(type(e).__name__ + str(e))
                 logging.warning("Try again" + file_name)
         else:
-            logging.error("Cannot download" + file_name)
+            logging.error("Cannot download %s", file_name)
             return(False)
     else:
-        logging.debug("Already downloaded " + file_name)
+        logging.debug("Already downloaded %s", file_name)
         return(True)
 
 
@@ -227,7 +227,7 @@ def compress_csv():
         for file in glob.glob("*" + DATE + "*" + "csv"):
             zip_csv.write(file)
             os.remove(file)
-        logging.info("Compressing " + str(OBSERVATION) + " item(s)")
+        logging.info("Compressing %s item(s)", str(OBSERVATION))
     except Exception as e:
         logging.error('Error when compressing csv')
         logging.info(type(e).__name__ + str(e))

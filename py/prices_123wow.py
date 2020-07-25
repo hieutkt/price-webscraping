@@ -81,7 +81,7 @@ def daily_task():
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
     html_file = open(PATH_HTML + base_file_name).read()
     CATEGORIES_PAGES = get_category_list(html_file)
-    logging.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
+    logging.info('Found %s categories', str(len(CATEGORIES_PAGES)))
     # Read each categories pages and scrape for data
     for cat in CATEGORIES_PAGES:
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
@@ -104,16 +104,16 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 with open(path + file_name, "wb") as f:
                     f.write(html_content)
                     con.close
-                logging.debug("Downloaded " + file_name)
+                logging.debug("Downloaded: %s", file_name)
                 return(True)
             except Exception:
                 attempts += 1
-                logging.debug("Downloaded " + file_name)
+                logging.debug("Downloaded: %s", file_name)
         else:
-            logging.error("Cannot download" + file_name)
+            logging.error("Cannot download %s", file_name)
             return(False)
     else:
-        logging.debug("Already downloaded " + file_name)
+        logging.debug("Already downloaded %s", file_name)
         return(True)
 
 
@@ -215,7 +215,7 @@ def compress_csv():
         for file in glob.glob("*" + DATE + "*" + "csv"):
             zip_csv.write(file)
             os.remove(file)
-        logging.info("Compressing " + str(OBSERVATION) + " item(s)")
+        logging.info("Compressing %s item(s)", str(OBSERVATION))
     except Exception as e:
         logging.error('Error when compressing csv')
         logging.info(type(e).__name__ + str(e))
