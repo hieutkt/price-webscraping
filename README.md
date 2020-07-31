@@ -16,7 +16,7 @@ Price data collection from a website generally consist of the following steps, e
 4. Compress and write data into databases, backup HTMLs if necessary
 
 
-# Streamlined API for online-retailer online scraping
+# Streamlined API for online-retailer price scraping
 
 With the general procedure laid out above, this project aims for a simple and coherent approach to the tasks of online retailer scraping. For example, a scraper should look something like this:
 
