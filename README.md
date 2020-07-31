@@ -1,25 +1,24 @@
-This document aims to document the system of small modules tailored for the collection of online price data. It tries to define an unified approach to scrape data systematically for all online sellers.
-
+This module is tailored for the collection of online price data. It tries to define an unified approach to scrape data systematically for all e-commerce websites.
 
 # Overall approach/principle
 
-Price data collection from a website generally consist of the following steps, each should belong to a single module:
-
-1. Send a request to main site or the sitemap page and obtain source code
-2. Collecting information of categories and subcategories webpages
-3. For each sub-directory, define a method to find a block of data for each item
-4. For each item block, define a method to scrape for all possible data
-5. Compress and write data into databases, backup HTMLs if necessary
-
-Also, during development of this project, we try to:
+Firstly, during the development of this project, we try to:
 
 - Use Python only
 - Follow good programming niceties: DRY, Unix Philosophy, etc...
 - Have good documentations
 
+Price data collection from a website generally consist of the following steps, each step should belong to a single module:
+
+1. Send a request to main site or the sitemap page and obtain its source code
+2. Collecting information of categories and subcategories webpages
+3. For each sub-directory, define a method to find a block of data for each item
+4. Compress and write data into databases, backup HTMLs if necessary
+
+
 # Streamlined API for online-retailer online scraping
 
-With the general procedure laid out above, this project aims for a simple and coherent approach to the tasks of online retailer scraping:
+With the general procedure laid out above, this project aims for a simple and coherent approach to the tasks of online retailer scraping. For example, a scraper should look something like this:
 
 ```python
 from pricescraper import PriceScraper
@@ -38,11 +37,11 @@ PriceScraper.deploy()
 
 The following problems often arise:
 
-- Websites populate contents using Javascript, in that case, a browser must be stimulated, using the `selenium` package
+- Websites populate contents using Javascript, in that case, a browser must be stimulated, using the `selenium` module
 - A decent website (with decent amount of data) usually have several methods to navigate around products: paginations, "see more" buttons,...
 - Sometimes popups/adverts show up, which prevent browsers to "see" data
 
-... and some more. Recurring errors of these types force us to properly modularize our codebase and handling errors if we want to expand our data collections.
+...and some more. Recurring errors of these types force us to properly modularize our codebase and handling errors if we want to expand our data collections.
 
 These are QoL features that should also be addressed:
 
