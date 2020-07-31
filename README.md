@@ -23,14 +23,14 @@ With the general procedure laid out above, this project aims for a simple and co
 
 ```python
 from pricescraper import PriceScraper
-from category_identificator import NestedCat
-from item_identificator import ItemIdentificator
-from blocked_data import Pagination
+from categories.nested_cat import NestedCat
+from items.indentify import ItemIdentify
+from blocked_data.pagination import Pagination
 
 PriceScraper.site_name = "lazada"
 PriceScraper.base_url = "lazada.vn"
 PriceScraper.category_identificator = NestedCat("<xpath-selector>")
-PriceScraper.item_identificator = ItemIndentificator("...")
+PriceScraper.item_identificator = ItemIndentify("...")
 PriceScraper.blocked_method = Pagination("...")
 
 PriceScraper.deploy()
