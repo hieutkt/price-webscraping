@@ -1,3 +1,5 @@
+"""Re-compress all tar.gz into zip files"""
+
 import os
 from zipfile import ZipFile
 
@@ -16,7 +18,7 @@ for folder in list_folders:
             print(file_, " Decompressing tar...")
             untar_cmd = "tar -xzf " + file_ + " && rm " + file_
             os.system(untar_cmd)
-    #compress all csv
+    # compress all csv
     list_files = os.listdir()
     for file_ in list_files:
         if file_.endswith("csv"):
