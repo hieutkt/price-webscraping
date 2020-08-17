@@ -143,7 +143,7 @@ def get_category_list(top_html):
     categories_tag = [item for sublist in categories_tag for item in sublist]
     for cat in categories_tag:
         next_page = {}
-        link = re.sub(".+lazadai\\.vn", "", cat['href'])
+        link = re.sub(".+lazada\\.vn", "", cat['href'])
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
         next_page['name'] = re.sub("/|\\?.=", "_", link)
