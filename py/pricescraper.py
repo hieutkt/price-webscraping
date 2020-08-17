@@ -1,9 +1,25 @@
 #!/usr/bin/env python3
 """This script create a PriceScraper object that streamline
-scraping interactions"""
+scraping interactions
+
+  Typical usage example:
+
+  from pricescraper import PriceScraper
+  from categories.nested_cat import NestedCat
+  from items.indentify import ItemIdentify
+  from blocked_data.pagination import Pagination
+
+  PriceScraper.site_name = "lazada"
+  PriceScraper.base_url = "lazada.vn"
+  PriceScraper.category_identificator = NestedCat("<xpath-selector>")
+  PriceScraper.item_identificator = ItemIndentify("...")
+  PriceScraper.blocked_method = Pagination("...")
+
+  PriceScraper.deploy()
+"""
 
 from selenium.webdriver.chrome.webdriver import WebDriver
-import loggings_setup
+from misc.loggings_setup import setup_loggings
 
 
 class PriceScraper():
@@ -21,7 +37,7 @@ class PriceScraper():
 
     def setup_loggings(self):
         """Setting up loggings"""
-        loggings_setup.setup_loggings(self.log_path, self.site_name)
+        setup_loggings(self.log_path, self.site_name)
 
     def get_source(self):
         """Get the html source of the driver"""
