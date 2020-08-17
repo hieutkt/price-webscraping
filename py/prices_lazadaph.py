@@ -18,8 +18,8 @@ import signal
 
 
 # Parameters
-SITE_NAME = "lazadavn"
-BASE_URL = "https://www.lazada.vn/"
+SITE_NAME = "lazadaph"
+BASE_URL = "https://www.lazada.com.ph/"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
@@ -143,7 +143,7 @@ def get_category_list(top_html):
     categories_tag = [item for sublist in categories_tag for item in sublist]
     for cat in categories_tag:
         next_page = {}
-        link = re.sub(".+lazada\\.vn", "", cat['href'])
+        link = re.sub(".+lazada\\.com\\.ph", "", cat['href'])
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
         next_page['name'] = re.sub("/|\\?.=", "_", link)
