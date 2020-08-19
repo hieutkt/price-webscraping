@@ -1,0 +1,11 @@
+session_name: price-webscraping-backup
+start_directory: ./
+before_script: pipenv install --dev --skip-lock
+shell_command_before:
+- '[ -d `pipenv --venv` ] && source `pipenv --venv`/bin/activate && reset'
+- 'cd $(git rev-parse --show-toplevel)'
+windows:
+- window_name: upwork
+  layout: tiled
+  panes:
+    - python ./sync-data.py
