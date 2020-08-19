@@ -36,6 +36,7 @@ windows:
     - python ./py/prices_vnshop.py run
 - window_name: lazada
   layout: tiled
+  panes:
     - python ./py/prices_lazadavn.py run
     - python ./py/prices_lazadaid.py run
     - python ./py/prices_lazadamy.py run
