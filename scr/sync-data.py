@@ -10,6 +10,7 @@ def sync_data():
     os.system(sync_command)
     print('Finished synching data at: ' + str(datetime.datetime.now()))
 
+
 if "test" in sys.argv:
     sync_data()
 else:
