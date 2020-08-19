@@ -23,7 +23,6 @@ windows:
     - python ./py/prices_gcaeco.py run
     - python ./py/prices_hoanghamobile.py run
     - python ./py/prices_hotdealvn.py run
-    - python ./py/prices_lazadavn.py run
     - python ./py/prices_nkfood.py run
     - python ./py/prices_nongsanbanbuon.py run
     - python ./py/prices_sendo.py run
@@ -35,4 +34,11 @@ windows:
     - python ./py/prices_tiki.py run
     - python ./py/prices_vinmart.py run
     - python ./py/prices_vnshop.py run
-
+- window_name: lazada
+  layout: tiled
+    - python ./py/prices_lazadavn.py run
+    - python ./py/prices_lazadaid.py run
+    - python ./py/prices_lazadamy.py run
+    - python ./py/prices_lazadaph.py run
+    - python ./py/prices_lazadasg.py run
+    - python ./py/prices_lazadath.py run
