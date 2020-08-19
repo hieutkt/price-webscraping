@@ -8,4 +8,4 @@ windows:
 - window_name: upwork
   layout: tiled
   panes:
-    - python ./sync-data.py
+    - python scr/sync-data.py
