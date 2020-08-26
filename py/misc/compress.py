@@ -44,4 +44,3 @@ class Compressor:
             logging.error('Error when compressing html')
             logging.info(type(e).__name__ + str(e))
         os.chdir(self.project_path)
-
