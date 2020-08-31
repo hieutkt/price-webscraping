@@ -10,13 +10,16 @@ import datetime
 from misc.loggings_setup import setup_loggings
 
 class Compressor:
-    def __init__(self, csv_path, html_path, observation, date = str(datetime.date.today())):
-        self.csv_path = csv_path
-        self.html_path = html_path
-        self.obervation = 0 
+    def __init__(self, project_path, site_name, observation, date=str(datetime.date.today())):
+        self.project_path = project_path
+        self.csv_path = project_path + "/csv/"
+        self.html_path = project_path + "/html/"
+        self.obervation = 0
         self.date = date
-    
-    def compress_csv():
+        self.site_name = site_name
+        self.observation = observation
+
+    def compress_csv(self):
         """Compress downloaded .csv files"""
         if not os.path.exists(self.csv_path):
             os.makedirs(self.csv_path)
@@ -26,13 +29,13 @@ class Compressor:
             for file in glob.glob("*" + self.date + "*" + "csv"):
                 zip_csv.write(file)
                 os.remove(file)
-            logging.info("Compressing %s item(s)", str(self.observation)
+            logging.info("Compressing %s item(s)", str(self.observation))
         except Exception as e:
             logging.error('Error when compressing csv')
             logging.info(type(e).__name__ + str(e))
         os.chdir(self.project_path)
 
-    def compress_html():
+    def compress_html(self):
         """Compress download .html files"""
         if not os.path.exists(self.html_path):
                 os.makedirs(self.html_path)
