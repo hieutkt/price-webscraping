@@ -21,7 +21,7 @@ def setup_loggings(log_path, site_name):
     log_error = handlers.TimedRotatingFileHandler(
         log_path + 'aggregated_error/errors.log',
         when='midnight', interval=1)
-    log_error.suffix = '%Y-%m-%d_' + site_name
+    # log_error.suffix = '%Y-%m-%d_' + site_name
 
     log_writer.setFormatter(log_format)
     log_stout.setFormatter(log_format)
