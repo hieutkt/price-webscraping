@@ -1,13 +1,12 @@
-import sys
 #!/usr/bin/env python3
 """Compressor class for dealing with CSVs and HTMLs"""
 
 import os
-import csv
 from zipfile import ZipFile
-import time
+import glob
 import datetime
-from misc.loggings_setup import setup_loggings
+import logging
+
 
 class Compressor:
     def __init__(self, project_path, site_name, observation, date=str(datetime.date.today())):

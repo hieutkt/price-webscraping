@@ -6,7 +6,6 @@ import logging
 import logging.handlers as handlers
 import coloredlogs
 
-
 def setup_loggings(log_path, site_name):
     """Setting up logging functions"""
     # Setting up logging
