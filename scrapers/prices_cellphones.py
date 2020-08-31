@@ -167,8 +167,8 @@ def scrap_data(cat):
     data = []
     for item in cat_li:
         row = {}
-        good_name = item.find('h3')
-        row['good_name'] = good_name.contents[0] if good_name else None
+        if good_name := item.find('h3'):
+            row['good_name'] = good_name.text.strip()
         price_tag = item.find('p', {'class': 'special-price'})
         if not price_tag:
             price_tag = item.find('span', {'class': 'regular-price'})
