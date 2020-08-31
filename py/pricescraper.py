@@ -19,7 +19,7 @@ scraping interactions
 """
 
 from selenium.webdriver.chrome.webdriver import WebDriver
-from misc.loggings_setup import setup_loggings
+from py.misc.loggings_setup import setup_loggings
 
 
 class PriceScraper():
