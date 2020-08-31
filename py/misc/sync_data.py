@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import schedule
 """Synch data from `data_dir` to `backup_dir`"""
 
 import sys
 import os
 import datetime
 import time
+import schedule
 
 
 def sync_data(data_dir='csv/', backup_dir='backup_csv/'):
