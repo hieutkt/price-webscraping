@@ -1,4 +1,7 @@
 import sys
+#!/usr/bin/env python3
+"""Compressor class for dealing with CSVs and HTMLs"""
+
 import os
 import csv
 from zipfile import ZipFile
