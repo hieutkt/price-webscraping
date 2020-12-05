@@ -117,13 +117,13 @@ def get_category_list(top_html):
     """Get list of relative categories directories from the top page"""
     page_list = []
     toppage_soup = BeautifulSoup(top_html, "lxml")
-    categories = toppage_soup.find('ul', {'class': 'menu-product menu-product-news'})
+    categories = toppage_soup.find('ul', {'class': 'cd-dropdown-content'})
     categories = categories.findAll('li')
     categories_tag = [cat.findAll('a') for cat in categories]
     categories_tag = [item for sublist in categories_tag for item in sublist]
     for cat in categories_tag:
         page = {}
-        link = re.sub(".+nongsanbanbuon\.com/", "", cat['href'])
+        link = re.sub(r".+nongsanbanbuon\.com/", "", cat['href'])
         page['relativelink'] = link
         page['directlink'] = BASE_URL + link
         page['name'] = re.sub("/|\\?.=", "_", link)
@@ -140,19 +140,20 @@ def scrap_data(cat):
     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
                     DATE + ".html").read()
     cat_soup = BeautifulSoup(cat_file, "lxml")
-    cat_div = cat_soup.find("div", {"class": "box-item"})
+    cat_div = cat_soup.find("div", {"class": "list-product-categories"})
     cat_div = cat_div.findAll("div", {"class": "item-product"}) if cat_div else None
     if cat_div is None:
         cat_div = []
     for item in cat_div:
         row = {}
-        good_name = item.find('h4')
+        good_name = item.find('h3')
         row['good_name'] = good_name.text.strip() if good_name else None
-        price = item.find('span', {"class": "price"})
-        row['price'] = price.text.strip("Giá:").strip() if price else None
-        location = price.findNext('p')
+        price = item.find('div', {"class": "price"})
+        row['price'] = price.text.strip() if price else None
+        location = item.find('div', {'class': 'addr'})
         row['location'] = location.text.strip() if location else None
-        date_posted = location.findNext('p')
+        date_posted = item.find('div', {'class': 'time'})
+        date_posted = date_posted.find('span', {'class': 'left'}) if date_posted else None
         row['date_posted'] = date_posted.text.strip() if date_posted else None
         id1 = good_name.find('a')
         row['id'] = id1.get('href') if id1 else None
@@ -186,7 +187,7 @@ def find_next_page(cat):
 
 def write_data(item_data):
     """Write an item data as a row in csv. Create new file if needed"""
-    fieldnames = ['good_name', 'price', 'old_price', 'id',
+    fieldnames = ['good_name', 'price', 'old_price', 'id', 'date_posted', 'location',
                   'category', 'category_label', 'date']
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
     if not os.path.exists(PATH_CSV):
