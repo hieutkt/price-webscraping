@@ -134,12 +134,19 @@ def get_category_list(top_html):
     """Get list of relative categories directories from the top page"""
     page_list = []
     toppage_soup = BeautifulSoup(top_html, "lxml")
-    categories = toppage_soup.findAll("ul", attrs={'id': 'nav'})
+    categories = toppage_soup.findAll("ul", {'class': 'col-md-12'})
     categories_tag = [cat.findAll('a') for cat in categories]
     categories_tag = [item for sublist in categories_tag for item in sublist]
-    for cat in categories_tag:
+    # Remove duplicate links
+    cat_check = []
+    for c in categories_tag:
+        if c.get('href') \
+           and c.get('href') not in [c.get('href') for c in cat_check]:
+            cat_check.append(c)
+    # Get infomation from category tags
+    for cat in cat_check:
         next_page = {}
-        link = re.sub(".+cellphones\.com\.vn", "", cat['href'])
+        link = re.sub(r".+cellphones\.com\.vn", "", cat['href'])
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
         next_page['name'] = re.sub("/|\\?.=", "_", link)
@@ -164,21 +171,20 @@ def scrap_data(cat):
         else: cat_li = []
     else:
         cat_li = []
-    data = []
     for item in cat_li:
         row = {}
         good_name = item.find('h3')
-        row['good_name'] = good_name.contents[0] if good_name else None
+        row['good_name'] = good_name.text.strip() if good_name else None
         price_tag = item.find('p', {'class': 'special-price'})
         if not price_tag:
             price_tag = item.find('span', {'class': 'regular-price'})
         price = price_tag.find('span', {'class': 'price'})\
             if price_tag else None
-        row['price'] = price.contents[0] if price else None
+        row['price'] = price.text.strip() if price else None
         old_price_tag = item.find('p', {'class': 'old-price'})
         old_price = old_price_tag.find('span', {'class': 'price'})\
             if old_price_tag else None
-        row['old_price'] = old_price.contents[0] if old_price else None
+        row['old_price'] = old_price.text.strip() if old_price else None
         id1 = item.find('a')
         row['id'] = id1.get('href') if id1 else None
         row['category'] = cat['name']
