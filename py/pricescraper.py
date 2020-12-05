@@ -20,6 +20,7 @@ scraping interactions
 
 from selenium.webdriver.chrome.webdriver import WebDriver
 from py.misc.loggings_setup import setup_loggings
+from py.misc.compress import Compressor
 
 
 class PriceScraper():
@@ -28,29 +29,26 @@ class PriceScraper():
     driverpath = "./bin/chromedriver"
     log_path = "./log"
 
-    def __init__(self, base_url, site_name, log_path=log_path):
+    def __init__(self, base_url, site_name, project_path,log_path=log_path):
+        self.observation = 0
         self.driver = WebDriver()
         self.base_url = base_url
         self.cat_list = []
         self.log_path = log_path
         self.site_name = site_name
+        self.project_path = project_path
 
     def setup_loggings(self):
         """Setting up loggings"""
         setup_loggings(self.log_path, self.site_name)
 
-    def get_source(self):
-        """Get the html source of the driver"""
-        return self.driver.page_source()
-
-    def get_category_list(self):
-        """Return the lists of category"""
-
-    def get_data(self):
-        """Scrap data from individual category"""
-
-    def compress_data(self):
-        """Compress data"""
-
-    def compress_source(self):
-        """Compress html"""
+    def main(self):
+        """Deploy the scraper to scrap data automatically"""
+        # Find all category pages
+        # For all item on each category pages and write data into CSVs
+        # Compress the remains CSVs and HTMLs
+        compressor = Compressor(site_name=self.site_name,
+                                project_path=self.project_path,
+                                observation=self.observation)
+        compressor.compress_csv()
+        compressor.compress_html()
