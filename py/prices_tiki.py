@@ -6,6 +6,9 @@ import schedule
 import re
 import csv
 import random
+import logging
+from rich.logging import RichHandler
+from rich.progress import track
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -17,6 +20,15 @@ project_path = re.sub("/py$", "", os.getcwd())
 path_html = project_path + "/html/" + site_name + "/"
 path_csv = project_path + "/csv/" + site_name + "/"
 
+
+logging.basicConfig(
+    level="INFO",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True)]
+)
+
+log = logging.getLogger("rich")
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""

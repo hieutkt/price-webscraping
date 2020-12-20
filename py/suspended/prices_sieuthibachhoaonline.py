@@ -56,12 +56,12 @@ def main():
     try:
         daily_task()
     except Exception as e:
-        logging.exception('Got exception, scraper stopped')
-        logging.info(type(e).__name__ + str(e))
+        log.exception('Got exception, scraper stopped')
+        log.info(type(e).__name__ + str(e))
     # Compress data and html files
     compress_csv()
     compress_html()
-    logging.info('Hibernating...')
+    log.info('Finished. Hibernating until next day...')
 
 
 def daily_task():
@@ -69,7 +69,7 @@ def daily_task():
     global DATE
     global CATEGORIES_PAGES
     global OBSERVATION
-    logging.info('Scraper started')
+    log.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())
     OBSERVATION = 0
@@ -201,10 +201,10 @@ def compress_csv():
         for file in glob.glob("*" + DATE + "*" + "csv"):
             zip_csv.write(file)
             os.remove(file)
-        logging.info("Compressing %s item(s)", str(OBSERVATION))
+        log.info("Compressing %s item(s)", str(OBSERVATION))
     except Exception as e:
-        logging.error('Error when compressing csv')
-        logging.info(type(e).__name__ + str(e))
+        log.error('Error when compressing csv')
+        log.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 
@@ -218,10 +218,10 @@ def compress_html():
         for file in glob.glob("*" + DATE + "*" + "html"):
             zip_csv.write(file)
             os.remove(file)
-        logging.info("Compressing HTML files")
+        log.info("Compressing HTML files")
     except Exception as e:
-        logging.error('Error when compressing html')
-        logging.info(type(e).__name__ + str(e))
+        log.error('Error when compressing html')
+        log.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 

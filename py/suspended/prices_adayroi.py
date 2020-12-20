@@ -74,12 +74,12 @@ def main():
         BROWSER.close()
         BROWSER.service.process.send_signal(signal.SIGTERM)
         BROWSER.quit()
-        logging.exception('Got exception, scraper stopped')
-        logging.info(type(e).__name__ + str(e))
+        log.exception('Got exception, scraper stopped')
+        log.info(type(e).__name__ + str(e))
     # Compress data and html files
     compress_csv()
     compress_html()
-    logging.info('Hibernating...')
+    log.info('Hibernating...')
 
 
 def daily_task():
@@ -88,12 +88,12 @@ def daily_task():
     global BROWSER
     global DATE
     global OBSERVATION
-    logging.info('Scraper started')
+    log.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())
     OBSERVATION = 0
     # Initiate headless web browser
-    logging.debug('Initialize browser')
+    log.debug('Initialize browser')
     BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
                                chrome_options=OPTIONS)
     # Download topsite and get categories directories
@@ -101,7 +101,7 @@ def daily_task():
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
     html_file = open(PATH_HTML + base_file_name).read()
     CATEGORIES_PAGES = get_category_list(html_file)
-    logging.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
+    log.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
     # Read each categories pages and scrape for data
     for cat in CATEGORIES_PAGES:
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
@@ -128,17 +128,17 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 html_content = element.get_attribute("innerHTML")
                 with open(path + file_name, "w") as f:
                     f.write(html_content)
-                logging.debug("Downloaded: %s", file_name)
+                log.debug("Downloaded: %s", file_name)
                 return(True)
             except Exception as e:
-                logging.info(type(e).__name__ + str(e))
-                logging.warning("Try again" + file_name)
+                log.info(type(e).__name__ + str(e))
+                log.warning("Try again" + file_name)
                 attempts += 1
         else:
-            logging.error("Cannot download %s", file_name)
+            log.error("Cannot download %s", file_name)
             return(False)
     else:
-        logging.debug("Already downloaded %s", file_name)
+        log.debug("Already downloaded %s", file_name)
         return(True)
 
 
@@ -263,10 +263,10 @@ def compress_csv():
         for file in glob.glob("*" + DATE + "*" + "csv"):
             zip_csv.write(file)
             os.remove(file)
-        logging.info("Compressing %s item(s)", str(OBSERVATION))
+        log.info("Compressing %s item(s)", str(OBSERVATION))
     except Exception as e:
-        logging.error('Error when compressing csv')
-        logging.info(type(e).__name__ + str(e))
+        log.error('Error when compressing csv')
+        log.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 
@@ -280,10 +280,10 @@ def compress_html():
         for file in glob.glob("*" + DATE + "*" + "html"):
             zip_csv.write(file)
             os.remove(file)
-        logging.info("Compressing HTML files")
+        log.info("Compressing HTML files")
     except Exception as e:
-        logging.error('Error when compressing html')
-        logging.info(type(e).__name__ + str(e))
+        log.error('Error when compressing html')
+        log.info(type(e).__name__ + str(e))
     os.chdir(PROJECT_PATH)
 
 
