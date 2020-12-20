@@ -1,5 +1,7 @@
 import sys
 import os
+import glob
+from zipfile import ZipFile
 import time
 import datetime
 import schedule
@@ -9,18 +11,31 @@ import random
 import logging
 from rich.logging import RichHandler
 from rich.progress import track
-from urllib.request import urlopen
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
+import signal
 
 
 # Parameters
-site_name = "tiki"
-base_url = "https://tiki.vn/"
-project_path = re.sub("/py$", "", os.getcwd())
-path_html = project_path + "/html/" + site_name + "/"
-path_csv = project_path + "/csv/" + site_name + "/"
+SITE_NAME = "tiki"
+BASE_URL = "https://tiki.vn"
+PROJECT_PATH = re.sub("/py$", "", os.getcwd())
+PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
+PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
+PATH_LOG = PROJECT_PATH + "/log/"
+DATE = str(datetime.date.today())
+OBSERVATION = 0
+
+# Selenium options
+OPTIONS = Options()
+OPTIONS.add_argument('--headless')
+# OPTIONS.add_argument('--disable-gpu')
+CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
+# Setting up logging
 logging.basicConfig(
     level="INFO",
     format="%(message)s",
@@ -30,115 +45,210 @@ logging.basicConfig(
 
 log = logging.getLogger("rich")
 
+
+# Defining main functions
+def main():
+    try:
+        daily_task()
+    except Exception as e:
+        log.exception('Got exception, scraper stopped')
+        log.info(type(e).__name__ + str(e))
+    # Compress data and html files
+    compress_csv()
+    compress_html()
+    log.info('Finished. Hibernating until next day...')
+
+
 def daily_task():
     """Main workhorse function. Support functions defined below"""
+    global CATEGORIES_PAGES
+    global BROWSER
+    global DATE
+    global OBSERVATION
+    log.info('Scraper started')
+    # Refresh date
+    DATE = str(datetime.date.today())
+    OBSERVATION = 0
+    # Initiate headless web browser
+    log.debug('Initialize browser')
+    BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                               chrome_options=OPTIONS)
     # Download topsite and get categories directories
-    date = str(datetime.date.today())
-    base_file_name = "All_cat_" + date + ".html"
-    fetch_html(base_url, base_file_name, path_html)
-    html_file = open(path_html + base_file_name).read()
-    cat_link = get_category_list(html_file)
-    cat_name = [re.sub("/|\\?.=", "_", link) for link in cat_link]
-    # Download categories pages and scrap for data
-    price_data = []
-    for link, name in zip(cat_link, cat_name):
-        cat_file = "cat_" + name + "_" + date + ".html"
-        fetch_html(base_url + link, cat_file, path_html)
-        if os.path.isfile(path_html + cat_file) is True:
-            price_data.append(scrap_data(name))
-    price_data = [item for sublist in price_data for item in sublist]
-    # Write csv
-    if not os.path.exists(path_csv):
-        os.makedirs(path_csv)
-    with open(path_csv + site_name + "_" + date + ".csv", "w") as f:
-        fieldnames = ['good_name', "id", 'price',
-                      'old_price', 'category', 'date']
-        writer = csv.DictWriter(f, fieldnames)
-        writer.writeheader()
-        writer.writerows(price_data)
-    # Compress data
-    zip_csv = "cd " + path_csv + "&& tar -cvzf " + site_name + "_" + \
-        date + ".tar.gz *" + site_name + "_" + date + "* --remove-files"
-    zip_html =  "cd " + path_html + "&& tar -cvzf " + site_name + "_" + \
-        date + ".tar.gz *" + date + ".html* --remove-files"
-    os.system(zip_csv)
-    os.system(zip_html)
+    base_file_name = "All_cat_" + DATE + ".html"
+    fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
+    # html_file = open(PATH_HTML + base_file_name).read()
+    CATEGORIES_PAGES = get_category_list()
+    log.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
+    # Read each categories pages and scrape for data
+    for cat in track(CATEGORIES_PAGES,
+                     description = "[green]Scraping...",
+                     total = len(CATEGORIES_PAGES)):
+        cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
+        download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
+        if download:
+            scrap_data(cat)
+    # Close browser
+    BROWSER.close()
+    BROWSER.service.process.send_signal(signal.SIGTERM)
+    BROWSER.quit()
 
 
-def fetch_html(url, file_name, path):
+def fetch_html(url, file_name, path, attempts_limit=5):
     """Fetch and download a html with provided path and file names"""
     if not os.path.exists(path):
         os.makedirs(path)
     if os.path.isfile(path + file_name) is False:
         attempts = 0
-        while attempts < 5:
+        while attempts < attempts_limit:
             try:
-                con = urlopen(url, timeout=5)
-                html_content = con.read()
-                with open(path + file_name, "wb") as f:
+                BROWSER.get(url)
+                element = BROWSER.find_element_by_xpath("/html")
+                html_content = element.get_attribute("innerHTML")
+                with open(path + file_name, "w") as f:
                     f.write(html_content)
-                    con.close
-                print("Downloaded ", file_name)
-                break
+                log.debug("Downloaded: %s", file_name)
+                return(True)
             except:
                 attempts += 1
-                print("Try again", file_name)
+                log.warning("Try again" + file_name)
         else:
-            print("Cannot download", file_name)
+            log.error("Cannot download %s", file_name)
+            return(False)
     else:
-        print("Already downloaded ", file_name)
+        log.debug("Already downloaded %s", file_name)
+        return(True)
 
 
-def get_category_list(top_html):
+def get_category_list():
     """Get list of relative categories directories from the top page"""
-    toppage_soup = BeautifulSoup(top_html, "lxml")
-    categories = toppage_soup.find("nav", {'class': 'main-nav-wrap'})
-    categories = categories.findAll("li")
-    categories_tag = [cat.findAll('a') for cat in categories]
-    categories_tag = [item for sublist in categories_tag for item in sublist]
-    categories_link = [re.sub(".+tiki\.vn/", "", i['href'])
-                       for i in categories_tag]
-    categories_link = list(set(categories_link))  # Remove duplicates
-    return(categories_link)
+    global BROWSER
+    page_list = []
+    categories_tags = []
+    tag = dict()
+    nav_div = BROWSER.find_element_by_css_selector("ul[data-view-id='main_navigation']")
+    cat1s = nav_div.find_elements_by_css_selector("li.MenuItem-sc-181aa19-0")
+    for cat1 in cat1s:
+        cat1_text = cat1.find_element_by_css_selector('a').text.strip()
+        ActionChains(BROWSER).move_to_element(cat1).perform()
+        cat2s = cat1.find_elements_by_css_selector('li')
+        for cat2 in cat2s:
+            link_tags = cat2.find_elements_by_css_selector('a')
+            for elem in link_tags:
+                cat2_text = elem.text.strip()
+                tag['text'] = cat1_text + " > " + cat2_text
+                tag['href'] = elem.get_attribute('href')
+                categories_tags.append(tag.copy())
+    # Unifying categories
+    for cat in categories_tags:
+        page = {}
+        link = re.sub(r".+tiki\.vn", "", cat['href'])
+        page['relativelink'] = link
+        page['directlink'] = BASE_URL + link
+        page['name'] = re.sub("/|\\?.+", "_", link)
+        page['label'] = re.sub("\\n", "", cat['text'])
+        page_list.append(page)
+    # Remove duplicates
+    # page_list = [dict(t) for t in set(tuple(i.items()) for i in page_list)]
+    return(page_list)
 
 
-def scrap_data(cat_name):
+def scrap_data(cat):
     """Get item data from a category page.
     Requires downloading the page first.
     """
-    date = str(datetime.date.today())
-    cat_file = open(path_html + "cat_" + cat_name + "_" + date + ".html")\
-        .read()
-    cat_soup = BeautifulSoup(cat_file, "lxml")
-    cat_div = cat_soup.find("div", {"class": "product-box-list"})
-    if cat_div:
-        cat_div = cat_div.findAll("div", {"class": "product-item"})
-    else: cat_div = []
-    data = []
+    global OBSERVATION
+    soup = BeautifulSoup(BROWSER.page_source, 'lxml')
+    cat_div = soup.findAll("a", {"class": "product-item"})
     for item in cat_div:
-        if 'flash-sale' in item.get('class'):
-            continue
         row = {}
-        row['good_name'] = item.get('data-title')
-        if not row['good_name']:
-            good_name = item.find("a")
-            row['good_name'] = good_name.get('title') if good_name else None
-        price = item.find('span', {'class': 'final-price'})
-        row['price'] = price.contents[0] if price else None
-        old_price = item.find('span', {"class": 'price-regular'})
-        row['old_price'] = old_price.contents[0] if old_price else None
-        row['id'] = item.get('data-seller-product-id') if item else None
-        row['category'] = cat_name
-        row['date'] = date
-        data.append(row)
-    return(data)
+        good_name = item.find('div', {'class': 'name'})
+        row['good_name'] = good_name.text.strip() if good_name else None
+        price = item.find('div', {'class': 'price-discount__price'})
+        row['price'] = price.text.strip() if price else None
+        discount = item.find('div', {"class": 'price-discount__discount'})
+        row['discount'] = discount.text.strip() if discount else None
+        row['id'] = item.get('href') if item else None
+        row['category'] = cat['name']
+        row['category_label'] = cat['label']
+        row['date'] = DATE
+        OBSERVATION += 1
+        write_data(row)
 
 
+# def find_next_page(cat):
+#     """Find the next page button, return page data"""
+#     cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
+#                     DATE + ".html").read()
+#     cat_soup = BeautifulSoup(cat_file, "lxml")
+#     next_button = cat_soup.find("div", {"class": "Pagination__Root-cyke21-0 imTRLy}")
+#     if next_button:
+#         link = re.sub(".+dichonhanh\.vn", "", cat['directlink'])
+#         link = re.sub("\?page=[0-9]+", "", link)
+#         link = link + next_button['href']
+#         if link not in [i['relativelink'] for i in CATEGORIES_PAGES]:
+#             next_page = cat.copy()
+#             next_page['relativelink'] = link
+#             next_page['directlink'] = BASE_URL + link
+#             next_page['name'] = re.sub("/|\\?.=", "_", link)
+#             CATEGORIES_PAGES.append(next_page)
+
+
+def write_data(item_data):
+    """Write an item data as a row in csv. Create new file if needed"""
+    fieldnames = ['good_name', "id", 'price',
+                  'discount', 'category', 'category_label', 'date']
+    file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
+    with open(PATH_CSV + SITE_NAME + "_" + DATE + ".csv", "a") as f:
+        writer = csv.DictWriter(f, fieldnames)
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(item_data)
+
+
+def compress_csv():
+    """Compress downloaded .csv files"""
+    if not os.path.exists(PATH_CSV):
+        os.makedirs(PATH_CSV)
+    os.chdir(PATH_CSV)
+    try:
+        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_csv.zip', 'a')
+        for file in glob.glob("*" + DATE + "*" + "csv"):
+            zip_csv.write(file)
+            os.remove(file)
+        log.info("Compressing %s item(s)", str(OBSERVATION))
+    except Exception as e:
+        log.error('Error when compressing csv')
+        log.info(type(e).__name__ + str(e))
+    os.chdir(PROJECT_PATH)
+
+
+def compress_html():
+    """Compress downloaded .html files"""
+    if not os.path.exists(PATH_HTML):
+        os.makedirs(PATH_HTML)
+    os.chdir(PATH_HTML)
+    try:
+        zip_csv = ZipFile(SITE_NAME + '_' + DATE + '_html.zip', 'a')
+        for file in glob.glob("*" + DATE + "*" + "html"):
+            zip_csv.write(file)
+            os.remove(file)
+        log.info("Compressing HTML files")
+    except Exception as e:
+        log.error('Error when compressing html')
+        log.info(type(e).__name__ + str(e))
+    os.chdir(PROJECT_PATH)
+
+
+# Run scripts if argument is 'test', run and hibernate if 'run' else hibernate
 if "test" in sys.argv:
-    daily_task()
+    main()
 else:
-    start_time = '01:' + str(random.randint(0,59)).zfill(2)
-    schedule.every().day.at(start_time).do(daily_task)
+    if "run" in sys.argv:
+        main()
+    start_time = '01:' + str(random.randint(0, 59)).zfill(2)
+    schedule.every().day.at(start_time).do(main)
     while True:
         schedule.run_pending()
         time.sleep(1)
