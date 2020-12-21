@@ -8,47 +8,47 @@ windows:
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_123wow.py run
-    - python ./py/prices_acefoods.py run
-    - python ./py/prices_adayroi.py run
-    - python ./py/prices_bachhoaxanh.py run
+    - python ./py/prices_123wow.py
+    - python ./py/prices_acefoods.py
+    - python ./py/prices_adayroi.py
+    - python ./py/prices_bachhoaxanh.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_cellphones.py run
-    - python ./py/prices_dichonhanh.py run
-    - python ./py/prices_dienmayxanh.py run
-    - python ./py/prices_foodhero.py run
+    - python ./py/prices_cellphones.py
+    - python ./py/prices_dichonhanh.py
+    - python ./py/prices_dienmayxanh.py
+    - python ./py/prices_foodhero.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_fptshop.py run
-    - python ./py/prices_gcaeco.py run
-    - python ./py/prices_hoanghamobile.py run
-    - python ./py/prices_hotdealvn.py run
+    - python ./py/prices_fptshop.py
+    - python ./py/prices_gcaeco.py
+    - python ./py/prices_hoanghamobile.py
+    - python ./py/prices_hotdealvn.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_nkfood.py run
-    - python ./py/prices_nongsanbanbuon.py run
-    - python ./py/prices_sendo.py run
-    - python ./py/prices_taphoagannha.py run
+    - python ./py/prices_nkfood.py
+    - python ./py/prices_nongsanbanbuon.py
+    - python ./py/prices_sendo.py
+    - python ./py/prices_taphoagannha.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_thegioididong.py run
-    - python ./py/prices_tiki.py run
-    - python ./py/prices_vinmart.py run
-    - python ./py/prices_vnshop.py run
+    - python ./py/prices_thegioididong.py
+    - python ./py/prices_tiki.py
+    - python ./py/prices_vinmart.py
+    - python ./py/prices_vnshop.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_lazadavn.py run
-    - python ./py/prices_lazadaid.py run
-    - python ./py/prices_lazadamy.py run
-    - python ./py/prices_lazadaph.py run
+    - python ./py/prices_lazadavn.py
+    - python ./py/prices_lazadaid.py
+    - python ./py/prices_lazadamy.py
+    - python ./py/prices_lazadaph.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_lazadasg.py run
-    - python ./py/prices_lazadath.py run
+    - python ./py/prices_lazadasg.py
+    - python ./py/prices_lazadath.py
