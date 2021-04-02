@@ -80,7 +80,7 @@ def daily_task():
     DATE = str(datetime.date.today())
     OBSERVATION = 0
     # Initiate headless web browser
-    log.debug('Initialize browser')
+    log.info('Initializing browser')
     BROWSER = webdriver.Chrome(executable_path=PROJECT_PATH + "/bin/chromedriver",
                                options=OPTIONS)
     # Download topsite and get categories directories
