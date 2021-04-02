@@ -13,6 +13,9 @@ from rich.logging import RichHandler
 from rich.progress import track
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import signal
 
 
 # Parameters
@@ -24,6 +27,13 @@ PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 PATH_LOG = PROJECT_PATH + "/log/"
 DATE = str(datetime.date.today())
 OBSERVATION = 0
+
+
+# Selenium options
+OPTIONS = Options()
+OPTIONS.add_argument('--headless')
+OPTIONS.add_argument('--disable-gpu')
+CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
 # Setting up logging
@@ -53,12 +63,17 @@ def main():
 def daily_task():
     """Main workhorse function. Support functions defined below"""
     global CATEGORIES_PAGES
+    global BROWSER
     global DATE
     global OBSERVATION
     log.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())
     OBSERVATION = 0
+    # Initiate headless web browser
+    log.debug('Initialize browser')
+    BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                               chrome_options=OPTIONS)
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
@@ -73,7 +88,10 @@ def daily_task():
         download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         if download:
             scrap_data(cat)
-            # find_next_page(cat)
+    # Close browser
+    BROWSER.close()
+    BROWSER.service.process.send_signal(signal.SIGTERM)
+    BROWSER.quit()
 
 
 def fetch_html(url, file_name, path, attempts_limit=5):
@@ -84,16 +102,16 @@ def fetch_html(url, file_name, path, attempts_limit=5):
         attempts = 0
         while attempts < attempts_limit:
             try:
-                con = urlopen(url, timeout=5)
-                html_content = con.read()
-                with open(path + file_name, "wb") as f:
+                BROWSER.get(url)
+                element = BROWSER.find_element_by_xpath("/html")
+                html_content = element.get_attribute("innerHTML")
+                with open(path + file_name, "w") as f:
                     f.write(html_content)
-                    con.close
                 log.debug(f"Downloaded: {file_name}")
                 return(True)
             except:
                 attempts += 1
-                log.debug(f"Downloaded: {file_name}")
+                log.warning("Try again" + file_name)
         else:
             log.error(f"Cannot download {file_name}")
             return(False)
@@ -111,7 +129,7 @@ def get_category_list(top_html):
     categories_tag = [item for sublist in categories_tag for item in sublist]
     for cat in categories_tag:
         page = {}
-        link = re.sub(".+thegioididong\.com", "", cat['href'])
+        link = re.sub(r".+thegioididong\.com", "", cat['href'])
         page['relativelink'] = link
         page['directlink'] = BASE_URL + link
         page['name'] = re.sub("/|\\?.=", "_", link)
@@ -127,9 +145,7 @@ def scrap_data(cat):
     Requires downloading the page first.
     """
     global OBSERVATION
-    cat_file = open(PATH_HTML + "cat_" + cat['name'] + "_" +
-                    DATE + ".html").read()
-    cat_soup = BeautifulSoup(cat_file, "lxml")
+    cat_soup = BeautifulSoup(BROWSER.page_source, 'lxml')
     cat_ul = cat_soup.findAll("ul", {"class": "homeproduct"})
     cat_li = [ul.findAll("li") for ul in cat_ul]
     cat_li = [item for sublist in cat_li for item in sublist]
