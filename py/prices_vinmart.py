@@ -12,17 +12,27 @@ from rich.logging import RichHandler
 from rich.progress import track
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import signal
 
 
 # Parameters
 SITE_NAME = "vinmart"
-BASE_URL = "https://www.adayroi.com/vinmart"
+BASE_URL = "https://vinmart.com/"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
 PATH_LOG = PROJECT_PATH + "/log/"
 DATE = str(datetime.date.today())
 OBSERVATION = 0
+
+
+# Selenium options
+OPTIONS = Options()
+OPTIONS.add_argument('--headless')
+OPTIONS.add_argument('--disable-gpu')
+CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"  # Chromedriver v2.38
 
 
 # Setting up logging
@@ -46,32 +56,42 @@ def main():
     # Compress data and html files
     compress_csv()
     compress_html()
-    log.info('Hibernating...')
+    log.info('Finished. Hibernating until next day...')
 
 
 def daily_task():
     """Main workhorse function. Support functions defined below"""
-    global DATE
     global CATEGORIES_PAGES
+    global BROWSER
+    global DATE
     global OBSERVATION
     log.info('Scraper started')
     # Refresh date
     DATE = str(datetime.date.today())
     OBSERVATION = 0
+    # Initiate headless web browser
+    log.info('Initializing browser')
+    BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
+                               options=OPTIONS)
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
-    fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
+    fetch_html(BASE_URL, base_file_name, PATH_HTML)
     html_file = open(PATH_HTML + base_file_name).read()
     CATEGORIES_PAGES = get_category_list(html_file)
+    log.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
     # Read each categories pages and scrape for data
     for cat in track(CATEGORIES_PAGES,
-                     description = "[green]Scraping...",
-                     total = len(CATEGORIES_PAGES)):
+                     description="[green]Scraping...",
+                     total=len(CATEGORIES_PAGES)):
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
         download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         if download:
             scrap_data(cat)
             find_next_page(cat)
+    # Close browser
+    BROWSER.close()
+    BROWSER.service.process.send_signal(signal.SIGTERM)
+    BROWSER.quit()
 
 
 def fetch_html(url, file_name, path, attempts_limit=5):
@@ -82,16 +102,17 @@ def fetch_html(url, file_name, path, attempts_limit=5):
         attempts = 0
         while attempts < attempts_limit:
             try:
-                con = urlopen(url, timeout=5)
-                html_content = con.read()
-                with open(path + file_name, "wb") as f:
+                BROWSER.get(url)
+                element = BROWSER.find_element_by_xpath("/html")
+                html_content = element.get_attribute("innerHTML")
+                with open(path + file_name, "w") as f:
                     f.write(html_content)
-                    con.close
                 log.debug(f"Downloaded: {file_name}")
                 return(True)
-            except:
+            except Exception as e:
                 attempts += 1
-                log.debug(f"Downloaded: {file_name}")
+                log.info(type(e).__name__ + str(e))
+                log.warning("Try again" + file_name)
         else:
             log.error(f"Cannot download {file_name}")
             return(False)
@@ -104,15 +125,15 @@ def get_category_list(top_html):
     """Get list of relative categories directories from the top page"""
     page_list = []
     toppage_soup = BeautifulSoup(top_html, "lxml")
-    categories = toppage_soup.find('ul', {'class': 'navbar-nav'})
-    categories = categories.findAll("li")
+    categories = toppage_soup.find('div', {'class': 'menu-list'})
+    categories = categories.findAll('div', {'class': 'menu-item'})
     categories_tag = [cat.findAll('a') for cat in categories]
     categories_tag = [item for sublist in categories_tag for item in sublist]
     for cat in categories_tag:
         page = {}
-        link = re.sub(".+adayroi\.com/", "", cat['href'])
+        link = re.sub(r".+vinmart\.com/", "", cat['href'])
         page['relativelink'] = link
-        page['directlink'] = "https://www.adayroi.com/" + link
+        page['directlink'] = "https://www.vinmart.com/" + link
         page['name'] = re.sub("/|\\?.=", "_", link)
         page['label'] = cat.text
         page_list.append(page)
