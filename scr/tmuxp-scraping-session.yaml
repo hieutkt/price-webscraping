@@ -10,33 +10,32 @@ windows:
   panes:
     - python ./py/prices_123wow.py
     - python ./py/prices_acefoods.py
-    - python ./py/prices_adayroi.py
     - python ./py/prices_bachhoaxanh.py
+    - python ./py/prices_cellphones.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_cellphones.py
     - python ./py/prices_dichonhanh.py
     - python ./py/prices_dienmayxanh.py
     - python ./py/prices_foodhero.py
+    - python ./py/prices_fptshop.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_fptshop.py
     - python ./py/prices_gcaeco.py
     - python ./py/prices_hoanghamobile.py
     - python ./py/prices_hotdealvn.py
+    - python ./py/prices_nkfood.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_nkfood.py
     - python ./py/prices_nongsanbanbuon.py
     - python ./py/prices_sendo.py
     - python ./py/prices_taphoagannha.py
+    - python ./py/prices_thegioididong.py
 - window_name: price
   layout: tiled
   panes:
-    - python ./py/prices_thegioididong.py
     - python ./py/prices_tiki.py
     - python ./py/prices_vinmart.py
     - python ./py/prices_vnshop.py
