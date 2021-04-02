@@ -52,7 +52,7 @@ def daily_task():
     global DATE
     DATE = str(datetime.date.today())
     browser = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                               chrome_options=OPTIONS)
+                               options=OPTIONS)
     # browser = webdriver.Chrome()
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)

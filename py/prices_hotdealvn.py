@@ -71,7 +71,7 @@ def daily_task():
     # Initiate headless web browser
     log.debug('Initialize browser')
     BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                               chrome_options=OPTIONS)
+                               options=OPTIONS)
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)

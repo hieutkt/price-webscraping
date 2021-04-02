@@ -48,8 +48,8 @@ def daily_task():
     prefs = {"profile.managed_default_content_settings.images":2}
     chromeOptions.add_argument("--headless")
     chromeOptions.add_experimental_option("prefs",prefs)
-    browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
-    # browser = webdriver.Chrome(chrome_options=chromeOptions)
+    browser = webdriver.Chrome(options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
+    # browser = webdriver.Chrome(options=chromeOptions)
     # browser = webdriver.Chrome()
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)

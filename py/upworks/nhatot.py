@@ -50,7 +50,7 @@ def daily_task():
     chromeOptions.add_argument("--disable-extensions")
     chromeOptions.add_argument("--no-sandbox")
     chromeOptions.add_argument("--disable-dev-shm-usage")
-    browser = webdriver.Chrome(chrome_options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
+    browser = webdriver.Chrome(options=chromeOptions,executable_path=CHROME_DRIVER_PATH)
     # browser = webdriver.Chrome()
     browser.set_window_position(400, 40)
     browser.set_window_size(1300, 1024)
