@@ -92,16 +92,16 @@ def fetch_html(url, file_name, path, attempts_limit=5):
                 with open(path + file_name, "wb") as f:
                     f.write(html_content)
                     con.close
-                log.debug("Downloaded: %s", file_name)
+                log.debug(f"Downloaded: {file_name}")
                 return(True)
             except:
                 attempts += 1
                 log.warning("Try again" + file_name)
         else:
-            log.error("Cannot download %s", file_name)
+            log.error(f"Cannot download {file_name}")
             return(False)
     else:
-        log.debug("Already downloaded %s", file_name)
+        log.debug(f"Already downloaded {file_name}")
         return(True)
 
 

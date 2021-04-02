@@ -201,7 +201,7 @@ def compress_csv():
         for file in glob.glob("*" + DATE + "*" + "csv"):
             zip_csv.write(file)
             os.remove(file)
-        log.info("Compressing %s item(s)", str(OBSERVATION))
+        log.info(f"Compressing {str(OBSERVATION)} item(s)")
     except Exception as e:
         log.error('Error when compressing csv')
         log.info(type(e).__name__ + str(e))
